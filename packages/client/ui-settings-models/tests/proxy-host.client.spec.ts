@@ -66,8 +66,12 @@ it('exposes secret live settings and persists the initial proxy through the real
   const saved = fixture.ctx.settings.describe({ redactSecrets: true }).find(row => row.ns === 'first')!
   expect(JSON.stringify(saved.value)).not.toContain('password')
   expect(saved.value).toMatchObject({ proxySetupComplete: true })
-  expect(proxyRouteFor(new URL('https://model.example')).proxy).toBe('http://user:password@proxy.example:8080')
+  expect(proxyRouteFor(new URL('https://model.example'))).toMatchObject({
+    proxied: true, proxy: 'http://user:password@proxy.example:8080',
+  })
   await fixture.ctx.fiber.dispose()
   await fixture.start()
-  expect(proxyRouteFor(new URL('https://model.example')).proxy).toBe('http://user:password@proxy.example:8080')
+  expect(proxyRouteFor(new URL('https://model.example'))).toMatchObject({
+    proxied: true, proxy: 'http://user:password@proxy.example:8080',
+  })
 })
