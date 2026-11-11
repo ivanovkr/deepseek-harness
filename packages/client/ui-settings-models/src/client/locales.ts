@@ -2,6 +2,12 @@
 
 /** English strings (the key-set source of truth for this pair). */
 export const en = {
+  proxyTitle: 'Network connection',
+  proxyLabel: 'Proxy URL (optional)',
+  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the environment settings. Local connections bypass the proxy.',
+  proxyInvalid: 'Enter an HTTP(S) proxy URL, such as http://127.0.0.1:8080. SOCKS is not supported.',
+  proxyContinue: 'Continue',
+  proxySaveFailed: 'Could not save the proxy settings. Please retry.',
   nav: 'Models',
   deepSeekAccount: 'DeepSeek Account',
   title: 'Models',
@@ -182,6 +188,12 @@ export type ModelsKey = keyof typeof en
 
 /** Chinese strings (same keys as {@link en}). */
 export const zh: { [Key in keyof typeof en]: string } = {
+  proxyTitle: 'Network connection',
+  proxyLabel: 'Proxy URL (optional)',
+  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the environment settings. Local connections bypass the proxy.',
+  proxyInvalid: 'Enter an HTTP(S) proxy URL, such as http://127.0.0.1:8080. SOCKS is not supported.',
+  proxyContinue: 'Continue',
+  proxySaveFailed: 'Could not save the proxy settings. Please retry.',
   nav: '模型',
   deepSeekAccount: 'DeepSeek 账号',
   title: '模型',
@@ -359,6 +371,12 @@ export const zh: { [Key in keyof typeof en]: string } = {
 
 /** Japanese copy, checked against the English keys. */
 export const ja = {
+  proxyTitle: 'Network connection',
+  proxyLabel: 'Proxy URL (optional)',
+  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the environment settings. Local connections bypass the proxy.',
+  proxyInvalid: 'Enter an HTTP(S) proxy URL, such as http://127.0.0.1:8080. SOCKS is not supported.',
+  proxyContinue: 'Continue',
+  proxySaveFailed: 'Could not save the proxy settings. Please retry.',
   'nav': 'モデル',
   'deepSeekAccount': 'DeepSeekアカウント',
   'title': 'モデル',
@@ -536,6 +554,12 @@ export const ja = {
 
 /** Spanish dictionary, checked against the English keys. */
 export const es = {
+  proxyTitle: 'Network connection',
+  proxyLabel: 'Proxy URL (optional)',
+  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the environment settings. Local connections bypass the proxy.',
+  proxyInvalid: 'Enter an HTTP(S) proxy URL, such as http://127.0.0.1:8080. SOCKS is not supported.',
+  proxyContinue: 'Continue',
+  proxySaveFailed: 'Could not save the proxy settings. Please retry.',
   nav: 'Modelos',
   deepSeekAccount: 'Cuenta DeepSeek',
   title: 'Modelos',
@@ -713,6 +737,12 @@ export const es = {
 
 /** French dictionary, checked against the English keys. */
 export const fr = {
+  proxyTitle: 'Network connection',
+  proxyLabel: 'Proxy URL (optional)',
+  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the environment settings. Local connections bypass the proxy.',
+  proxyInvalid: 'Enter an HTTP(S) proxy URL, such as http://127.0.0.1:8080. SOCKS is not supported.',
+  proxyContinue: 'Continue',
+  proxySaveFailed: 'Could not save the proxy settings. Please retry.',
   nav: 'Modèles',
   deepSeekAccount: 'Compte DeepSeek',
   title: 'Modèles',
@@ -890,6 +920,12 @@ export const fr = {
 
 /** German dictionary, checked against the English keys. */
 export const de = {
+  proxyTitle: 'Network connection',
+  proxyLabel: 'Proxy URL (optional)',
+  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the environment settings. Local connections bypass the proxy.',
+  proxyInvalid: 'Enter an HTTP(S) proxy URL, such as http://127.0.0.1:8080. SOCKS is not supported.',
+  proxyContinue: 'Continue',
+  proxySaveFailed: 'Could not save the proxy settings. Please retry.',
   nav: 'Modelle',
   deepSeekAccount: 'DeepSeek-Konto',
   title: 'Modelle',
@@ -1067,6 +1103,12 @@ export const de = {
 
 /** Russian dictionary, checked against the English keys. */
 export const ru = {
+  proxyTitle: 'Подключение к сети',
+  proxyLabel: 'Адрес proxy (необязательно)',
+  proxyHint: 'HTTP- или HTTPS-proxy будет использоваться для всех провайдеров моделей и других исходящих запросов. Оставьте поле пустым, чтобы сохранить настройки окружения. Локальные подключения идут напрямую.',
+  proxyInvalid: 'Введите HTTP(S)-адрес proxy, например http://127.0.0.1:8080. SOCKS не поддерживается.',
+  proxyContinue: 'Продолжить',
+  proxySaveFailed: 'Не удалось сохранить настройки proxy. Повторите попытку.',
   nav: 'Модели',
   deepSeekAccount: 'DeepSeek Аккаунт',
   title: 'Модели',
@@ -1244,6 +1286,12 @@ export const ru = {
 
 /** Portuguese dictionary, checked against the English keys. */
 export const pt = {
+  proxyTitle: 'Network connection',
+  proxyLabel: 'Proxy URL (optional)',
+  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the environment settings. Local connections bypass the proxy.',
+  proxyInvalid: 'Enter an HTTP(S) proxy URL, such as http://127.0.0.1:8080. SOCKS is not supported.',
+  proxyContinue: 'Continue',
+  proxySaveFailed: 'Could not save the proxy settings. Please retry.',
   nav: 'Modelos',
   deepSeekAccount: 'DeepSeek Conta',
   title: 'Modelos',

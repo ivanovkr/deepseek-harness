@@ -11,7 +11,7 @@ Desktop product events use the optional [product analytics service](../product-a
 
 ## Summary
 
-`dsh-client-ui-settings-models` is the Models settings page of the dsh web client: users configure API keys (stored write-only under the profile's credential reference), edit each provider's model list, and hand-declare custom pi-ai routes, with provider rows and one editor card at a time. The page joins the provider directory, the settings document, and the credential descriptions into one shared snapshot, so a row's state stays consistent across all three. It also walks first-run users through two ordered dialogs — a versioned preview notice and the conditional official-DeepSeek credential step.
+`dsh-client-ui-settings-models` is the Models settings page of the dsh web client: users configure API keys (stored write-only under the profile's credential reference), edit each provider's model list, and hand-declare custom pi-ai routes, with provider rows and one editor card at a time. The page joins the provider directory, the settings document, and the credential descriptions into one shared snapshot, so a row's state stays consistent across all three. It also walks first-run users through ordered dialogs — a versioned preview notice and the conditional official-DeepSeek credential step.
 
 ## Table of Contents
 
@@ -36,6 +36,8 @@ Open the Models page from the Settings navigation to see every configured provid
 A provider with a stored catalog error remains visible with its diagnostic and edit/delete actions. Add actions are offered only for registered settings namespaces, so an unavailable namespace cannot leave a button that opens no editor. A rejected save leaves the editor open and displays the Host diagnostic.
 
 After Apply closes an editor, its saved status appears when the current provider, settings, and credential snapshot is ready. Opening any row's editor, adding a provider, and opening a removal confirmation wait for that refresh. A newly opened Models section, or one retrying after a page-load failure, waits for a ready snapshot before mounting editors. A background refresh preserves an open draft while its editor remains mounted; a failed page load or provider removal can close it.
+
+The first network step accepts an optional HTTP(S) proxy URL, including username/password authentication. It saves `ui-settings-models.proxyUrl` as a secret field and records `proxySetupComplete` only after a successful write. The Host installs the shared outbound dispatcher immediately and on subsequent launches of that profile, covering every model provider and other HTTP clients using the shared transport. Loopback traffic bypasses it. Leaving the field blank or choosing Later keeps the launch environment's routing. SOCKS proxies are unsupported. The URL is write-only in the browser and is not included in page initialization data. Read-only deployments skip this step; operators can configure the same fields in their profile patch.
 
 Host configuration `credentialOnboarding` defaults to `true`. The Electron preload marker suppresses automatic credential onboarding and the Web welcome notice; Models settings and explicit API-key editing remain available. The [account plugin](../ui-settings-account/README.md#desktop-onboarding) owns the Desktop introduction. Other native shells can disable only the credential step with `credentialOnboarding: false`. Host publishes this public boolean through `webserver/index-inject`, and Client validates it before registering dialogs. It is page initialization data, not a durable completion marker.
 
@@ -103,7 +105,7 @@ Concurrent `ModelsSettingsStore.load()` callers resolve after the current refres
 
 ### Onboarding coordinator
 
-The notice step owns its exact copy in `src/client/locales.ts` and its acknowledgement version in `src/onboarding-copy.ts`. Authenticated browsers compare and write `ui-settings-general.welcomeNoticeVersion` through the shared configuration form; only an explicit Continue records the current version, and an unavailable namespace or a refused write leaves the notice unacknowledged. Users who acknowledged an earlier version see the current notice again. The DeepSeek step targets `deepseek-official` in `llm-deepseek` and renders the existing `ProviderEditor` in credential-only mode inside the shared onboarding modal; `credentials.set` stays the only secret write, and no provider settings are changed.
+The notice step owns its exact copy in `src/client/locales.ts` and its acknowledgement version in `src/onboarding-copy.ts`. Authenticated browsers compare and write `ui-settings-general.welcomeNoticeVersion` through the shared configuration form; only an explicit Continue records the current version, and an unavailable namespace or a refused write leaves the notice unacknowledged. Users who acknowledged an earlier version see the current notice again. The DeepSeek step targets `deepseek-official` in `llm-deepseek` and renders the existing `ProviderEditor` in credential-only mode inside the shared onboarding modal; `credentials.set` remains the credential step’s secret write, and no provider settings are changed.
 
 </details>
 

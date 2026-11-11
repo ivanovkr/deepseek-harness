@@ -8,6 +8,8 @@ import Schema from '@deepseek-ai/schemastery'
 import type { SettingsNamespaceView } from '@deepseek-ai/dsh-api-remotes/client'
 import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 import { allowAllAccess, bindSnapshotSelector, RemoteError } from '@deepseek-ai/dsh-client-test-runtime'
+import { ProxyOnboardingDialog } from '../src/client/ProxyOnboardingDialog.tsx'
+import { Config as OnboardingConfig } from '../src/onboarding-config.ts'
 import { DeepSeekOnboardingDialog } from '../src/client/DeepSeekOnboardingDialog.tsx'
 import type { DeepSeekOnboardingDialogProps } from '../src/client/DeepSeekOnboardingDialog.tsx'
 import { SettingsDescribeMirror } from '@deepseek-ai/dsh-client-ui-settings/src/client/settings-mirror.ts'
@@ -65,6 +67,7 @@ function deepSeekNamespace(apiKeyEnv: string | null): SettingsNamespaceView {
 }
 
 function harness(options: {
+  proxySetupComplete?: boolean
   provider?: boolean
   providerSettingsNs?: string
   providerActive?: boolean
@@ -117,7 +120,12 @@ function harness(options: {
       describe: () => Promise.resolve(remoteOk({
         writable: options.settingsWritable ?? true,
         hasDocument: false,
-        namespaces: options.settingsNamespace === false ? [] : [deepSeekNamespace(apiKeyEnv)],
+        namespaces: options.settingsNamespace === false ? [] : [
+          deepSeekNamespace(apiKeyEnv), ...(options.proxySetupComplete === undefined ? [] : [{
+            ...deepSeekNamespace(null), ns: 'ui-settings-models',
+            schema: JSON.parse(JSON.stringify(OnboardingConfig.toJSON())) as JsonValue,
+            value: { proxySetupComplete: options.proxySetupComplete },
+          }])],
       })),
       mutate,
     },
@@ -314,4 +322,50 @@ it('keeps explicit API key setup available when automatic onboarding is disabled
   render(<DeepSeekOnboardingDialog {...h.props} />)
   await waitFor(() => { expect(screen.getByRole('dialog')).toBeTruthy() })
   expect(h.complete).not.toHaveBeenCalled()
+})
+
+
+describe('initial proxy setup', () => {
+  it('saves a proxy for every provider before completing the step', async () => {
+    const h = harness({ proxySetupComplete: false })
+    render(<ProxyOnboardingDialog {...h.props} />)
+    const input = await screen.findByLabelText(en.proxyLabel)
+    fireEvent.change(input, { target: { value: ' http://user:password@proxy.example:8080 ' } })
+    expect(input.getAttribute('type')).toBe('password')
+    fireEvent.click(screen.getByRole('button', { name: en.proxyContinue }))
+    await waitFor(() => { expect(h.complete).toHaveBeenCalledOnce() })
+    expect(h.mutate).toHaveBeenCalledWith('ui-settings-models', [
+      { op: 'set', path: ['proxyUrl'], value: 'http://user:password@proxy.example:8080' },
+      { op: 'set', path: ['proxySetupComplete'], value: true },
+    ], 0)
+  })
+  it('rejects SOCKS and can skip without overriding ambient routing', async () => {
+    const h = harness({ proxySetupComplete: false })
+    render(<ProxyOnboardingDialog {...h.props} />)
+    fireEvent.change(await screen.findByLabelText(en.proxyLabel), { target: { value: 'socks5://localhost:1080' } })
+    expect(screen.getByRole('button', { name: en.proxyContinue }).hasAttribute('disabled')).toBe(true)
+    expect(screen.getByRole('alert').textContent).toBe(en.proxyInvalid)
+    fireEvent.click(screen.getByRole('button', { name: en.onboardingLater }))
+    await waitFor(() => { expect(h.complete).toHaveBeenCalledOnce() })
+    expect(h.mutate).toHaveBeenCalledWith('ui-settings-models', [
+      { op: 'set', path: ['proxySetupComplete'], value: true },
+    ], 0)
+  })
+  it('retains the draft and blocks completion when persistence fails', async () => {
+    const h = harness({ proxySetupComplete: false })
+    vi.spyOn(h.props.operations, 'writeSettings').mockResolvedValueOnce({ kind: 'refused', message: 'host refusal' })
+    render(<ProxyOnboardingDialog {...h.props} />)
+    const input = await screen.findByLabelText(en.proxyLabel)
+    fireEvent.change(input, { target: { value: 'http://proxy.example:8080' } })
+    fireEvent.click(screen.getByRole('button', { name: en.proxyContinue }))
+    await waitFor(() => { expect(screen.getByRole('alert').textContent).toBe(en.proxySaveFailed) })
+    expect((input as HTMLInputElement).value).toBe('http://proxy.example:8080')
+    expect(h.complete).not.toHaveBeenCalled()
+  })
+  it('does not prompt again after the durable acknowledgement', async () => {
+    const h = harness({ proxySetupComplete: true })
+    render(<ProxyOnboardingDialog {...h.props} />)
+    await waitFor(() => { expect(h.complete).toHaveBeenCalledOnce() })
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
 })
