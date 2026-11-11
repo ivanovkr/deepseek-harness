@@ -2,9 +2,16 @@
 
 /** English strings (the key-set source of truth for this pair). */
 export const en = {
+  proxySettings: 'Network proxy',
+  proxyEdit: 'Configure proxy',
+  proxyConfigured: 'Proxy configured',
+  proxyEnvironment: 'Environment routing',
+  proxyKeepSaved: 'Leave blank to keep the saved proxy',
+  proxyReset: 'Use environment settings',
+  proxySaved: 'Proxy settings saved.',
   proxyTitle: 'Network connection',
   proxyLabel: 'Proxy URL (optional)',
-  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the environment settings. Local connections bypass the proxy.',
+  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the current settings. Local connections bypass the proxy.',
   proxyInvalid: 'Enter an HTTP(S) proxy URL, such as http://127.0.0.1:8080. SOCKS is not supported.',
   proxyContinue: 'Continue',
   proxySaveFailed: 'Could not save the proxy settings. Please retry.',
@@ -188,9 +195,16 @@ export type ModelsKey = keyof typeof en
 
 /** Chinese strings (same keys as {@link en}). */
 export const zh: { [Key in keyof typeof en]: string } = {
+  proxySettings: '网络代理',
+  proxyEdit: '配置代理',
+  proxyConfigured: '已配置代理',
+  proxyEnvironment: '环境设置',
+  proxyKeepSaved: '留空以保留已保存的代理',
+  proxyReset: '使用环境设置',
+  proxySaved: '代理设置已保存',
   proxyTitle: 'Network connection',
   proxyLabel: 'Proxy URL (optional)',
-  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the environment settings. Local connections bypass the proxy.',
+  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the current settings. Local connections bypass the proxy.',
   proxyInvalid: 'Enter an HTTP(S) proxy URL, such as http://127.0.0.1:8080. SOCKS is not supported.',
   proxyContinue: 'Continue',
   proxySaveFailed: 'Could not save the proxy settings. Please retry.',
@@ -371,9 +385,16 @@ export const zh: { [Key in keyof typeof en]: string } = {
 
 /** Japanese copy, checked against the English keys. */
 export const ja = {
+  proxySettings: 'ネットワークプロキシ',
+  proxyEdit: 'プロキシを設定',
+  proxyConfigured: 'プロキシ設定済み',
+  proxyEnvironment: '環境設定',
+  proxyKeepSaved: '空欄で保存済みのプロキシを維持',
+  proxyReset: '環境設定を使用',
+  proxySaved: 'プロキシ設定を保存しました。',
   proxyTitle: 'Network connection',
   proxyLabel: 'Proxy URL (optional)',
-  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the environment settings. Local connections bypass the proxy.',
+  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the current settings. Local connections bypass the proxy.',
   proxyInvalid: 'Enter an HTTP(S) proxy URL, such as http://127.0.0.1:8080. SOCKS is not supported.',
   proxyContinue: 'Continue',
   proxySaveFailed: 'Could not save the proxy settings. Please retry.',
@@ -554,9 +575,16 @@ export const ja = {
 
 /** Spanish dictionary, checked against the English keys. */
 export const es = {
+  proxySettings: 'Proxy de red',
+  proxyEdit: 'Configurar proxy',
+  proxyConfigured: 'Proxy configurado',
+  proxyEnvironment: 'Configuración del entorno',
+  proxyKeepSaved: 'Dejar en blanco para conservar el proxy guardado',
+  proxyReset: 'Usar configuración del entorno',
+  proxySaved: 'Configuración del proxy guardada.',
   proxyTitle: 'Network connection',
   proxyLabel: 'Proxy URL (optional)',
-  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the environment settings. Local connections bypass the proxy.',
+  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the current settings. Local connections bypass the proxy.',
   proxyInvalid: 'Enter an HTTP(S) proxy URL, such as http://127.0.0.1:8080. SOCKS is not supported.',
   proxyContinue: 'Continue',
   proxySaveFailed: 'Could not save the proxy settings. Please retry.',
@@ -737,9 +765,16 @@ export const es = {
 
 /** French dictionary, checked against the English keys. */
 export const fr = {
+  proxySettings: 'Proxy réseau',
+  proxyEdit: 'Configurer le proxy',
+  proxyConfigured: 'Proxy configuré',
+  proxyEnvironment: 'Configuration de l’environnement',
+  proxyKeepSaved: 'Laisser vide pour conserver le proxy enregistré',
+  proxyReset: 'Utiliser la configuration de l’environnement',
+  proxySaved: 'Configuration du proxy enregistrée.',
   proxyTitle: 'Network connection',
   proxyLabel: 'Proxy URL (optional)',
-  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the environment settings. Local connections bypass the proxy.',
+  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the current settings. Local connections bypass the proxy.',
   proxyInvalid: 'Enter an HTTP(S) proxy URL, such as http://127.0.0.1:8080. SOCKS is not supported.',
   proxyContinue: 'Continue',
   proxySaveFailed: 'Could not save the proxy settings. Please retry.',
@@ -920,9 +955,16 @@ export const fr = {
 
 /** German dictionary, checked against the English keys. */
 export const de = {
+  proxySettings: 'Netzwerkproxy',
+  proxyEdit: 'Proxy konfigurieren',
+  proxyConfigured: 'Proxy konfiguriert',
+  proxyEnvironment: 'Umgebungseinstellungen',
+  proxyKeepSaved: 'Leer lassen, um den gespeicherten Proxy beizubehalten',
+  proxyReset: 'Umgebungseinstellungen verwenden',
+  proxySaved: 'Proxyeinstellungen gespeichert.',
   proxyTitle: 'Network connection',
   proxyLabel: 'Proxy URL (optional)',
-  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the environment settings. Local connections bypass the proxy.',
+  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the current settings. Local connections bypass the proxy.',
   proxyInvalid: 'Enter an HTTP(S) proxy URL, such as http://127.0.0.1:8080. SOCKS is not supported.',
   proxyContinue: 'Continue',
   proxySaveFailed: 'Could not save the proxy settings. Please retry.',
@@ -1103,9 +1145,16 @@ export const de = {
 
 /** Russian dictionary, checked against the English keys. */
 export const ru = {
+  proxySettings: 'Сетевой proxy',
+  proxyEdit: 'Настроить proxy',
+  proxyConfigured: 'Proxy настроен',
+  proxyEnvironment: 'Настройки окружения',
+  proxyKeepSaved: 'Оставьте пустым, чтобы сохранить текущий proxy',
+  proxyReset: 'Использовать настройки окружения',
+  proxySaved: 'Настройки proxy сохранены.',
   proxyTitle: 'Подключение к сети',
   proxyLabel: 'Адрес proxy (необязательно)',
-  proxyHint: 'HTTP- или HTTPS-proxy будет использоваться для всех провайдеров моделей и других исходящих запросов. Оставьте поле пустым, чтобы сохранить настройки окружения. Локальные подключения идут напрямую.',
+  proxyHint: 'HTTP- или HTTPS-proxy будет использоваться для всех провайдеров моделей и других исходящих запросов. Оставьте поле пустым, чтобы сохранить текущие настройки. Локальные подключения идут напрямую.',
   proxyInvalid: 'Введите HTTP(S)-адрес proxy, например http://127.0.0.1:8080. SOCKS не поддерживается.',
   proxyContinue: 'Продолжить',
   proxySaveFailed: 'Не удалось сохранить настройки proxy. Повторите попытку.',
@@ -1286,9 +1335,16 @@ export const ru = {
 
 /** Portuguese dictionary, checked against the English keys. */
 export const pt = {
+  proxySettings: 'Proxy de rede',
+  proxyEdit: 'Configurar proxy',
+  proxyConfigured: 'Proxy configurado',
+  proxyEnvironment: 'Configuração do ambiente',
+  proxyKeepSaved: 'Deixe em branco para manter o proxy salvo',
+  proxyReset: 'Usar configuração do ambiente',
+  proxySaved: 'Configuração do proxy salva.',
   proxyTitle: 'Network connection',
   proxyLabel: 'Proxy URL (optional)',
-  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the environment settings. Local connections bypass the proxy.',
+  proxyHint: 'Use an HTTP or HTTPS proxy for all model providers and other outbound requests. Leave blank to keep the current settings. Local connections bypass the proxy.',
   proxyInvalid: 'Enter an HTTP(S) proxy URL, such as http://127.0.0.1:8080. SOCKS is not supported.',
   proxyContinue: 'Continue',
   proxySaveFailed: 'Could not save the proxy settings. Please retry.',

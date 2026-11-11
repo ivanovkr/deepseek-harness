@@ -2667,3 +2667,23 @@ it.each([es, fr, de, ru, pt])('keeps capacity examples in translated validation 
     }
   }
 })
+
+
+it('keeps proxy settings reachable on the Models page after initial setup', async () => {
+  const scripted = scriptedFace()
+  const proxyNamespace: SettingsNamespaceView = {
+    ...wireNamespaces()[0]!, ns: 'ui-settings-models',
+    value: { proxySetupComplete: true }, secrets: [], autoGenerate: false,
+  }
+  scripted.face.settings.describe.mockResolvedValue(remoteOk({
+    writable: true, hasDocument: false, namespaces: [...wireNamespaces(), proxyNamespace],
+  }))
+  const h = await mountFace(scripted)
+  fireEvent.click(screen.getByRole('button', { name: en.proxyEdit }))
+  fireEvent.change(screen.getByLabelText(en.proxyLabel), { target: { value: 'http://127.0.0.1:7890' } })
+  fireEvent.click(screen.getByRole('button', { name: en.apply }))
+  await waitFor(() => { expect(h.mutate).toHaveBeenCalledWith('ui-settings-models', [
+    { op: 'set', path: ['proxyUrl'], value: 'http://127.0.0.1:7890' },
+    { op: 'set', path: ['proxySetupComplete'], value: true },
+  ], 0) })
+})

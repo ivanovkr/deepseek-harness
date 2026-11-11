@@ -37,7 +37,7 @@ kind: "package-reference"
 
 应用设置并关闭编辑器后，当前提供商、settings 与凭据快照就绪时才显示保存状态。打开任一行的编辑器、添加提供商和打开移除确认都会等待该刷新。新打开的 Models 区域或页面加载失败后的重试会等到 ready 快照后才挂载编辑器。后台刷新期间，只要编辑器仍挂载，已打开的草稿就会保留用户的修改；页面加载失败或提供商被移除可能关闭编辑器。
 
-首次网络设置接受可选的 HTTP(S) 代理地址，支持用户名和密码认证。地址以机密字段 `ui-settings-models.proxyUrl` 保存，写入成功后才记录 `proxySetupComplete`。Host 立即安装共享出站调度器，并在下次启动同一 profile 时恢复，覆盖所有模型提供商及使用共享传输的其他 HTTP 客户端；回环连接直接访问。留空或选择稍后设置时保留启动环境的路由，不支持 SOCKS。浏览器只能写入地址，页面初始化数据不包含该地址。只读部署跳过此步骤，管理员也可通过 profile 补丁配置这些字段。
+**Models → 网络代理 → 配置代理** 在首次设置结束后和已有对话中仍然可用，可以替换只写的代理地址或恢复环境路由。取消会丢弃草稿，替换地址留空会保留已保存的代理。首次网络设置接受可选的 HTTP(S) 代理地址，支持用户名和密码认证。地址以机密字段 `ui-settings-models.proxyUrl` 保存，写入成功后才记录 `proxySetupComplete`。Host 立即安装共享出站调度器，并在下次启动同一 profile 时恢复，覆盖所有模型提供商及使用共享传输的其他 HTTP 客户端；回环连接直接访问。留空或选择稍后设置时保留启动环境的路由，不支持 SOCKS。浏览器只能写入地址，页面初始化数据不包含该地址。只读部署跳过此步骤，管理员也可通过 profile 补丁配置这些字段。
 
 Host 配置 `credentialOnboarding` 默认为 `true`。Electron preload 标记会抑制自动凭证引导和 Web 欢迎须知；模型设置页与显式 API Key 编辑仍然可用。[账号插件](../ui-settings-account/README.zh.md#desktop-onboarding)负责 Desktop 引导。其他原生壳可以通过 `credentialOnboarding: false` 仅禁用凭证步骤。Host 通过 `webserver/index-inject` 发布这个公开的布尔值，Client 在注册弹窗前校验它。它是页面初始化数据，不是持久化的完成标记。
 
@@ -158,3 +158,5 @@ Models 页面包含 **DeepSeek 账号**（`deepseek-account`，英文为 **DeepS
 无。
 
 </details>
+
+从源码启动时，`pnpm dsh web` 使用已构建的客户端包。更新本包后，运行 `pnpm exec tsc -b packages/client/ui-settings-models` 和 `pnpm --filter @deepseek-ai/dsh-client-ui-settings-models bundle` 重建声明与包，然后重启 Web Host 并刷新页面。包管理器的代理设置用于下载依赖，应用路由则读取启动环境或已保存的网络设置；使用环境代理时，请在启动前设置 `HTTP_PROXY` 和 `HTTPS_PROXY`。

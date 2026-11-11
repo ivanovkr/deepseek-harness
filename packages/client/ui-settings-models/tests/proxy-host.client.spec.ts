@@ -70,8 +70,11 @@ it('exposes secret live settings and persists the initial proxy through the real
     proxied: true, proxy: 'http://user:password@proxy.example:8080',
   })
   await fixture.ctx.fiber.dispose()
-  await fixture.start()
+  const restarted = await fixture.start()
   expect(proxyRouteFor(new URL('https://model.example'))).toMatchObject({
     proxied: true, proxy: 'http://user:password@proxy.example:8080',
   })
+  const current = restarted.settings.describe({ redactSecrets: true }).find(row => row.ns === 'first')!
+  await restarted.settings.mutate('first', [{ op: 'unset', path: ['proxyUrl'] }], current.revision)
+  await expect.poll(() => proxyRouteFor(new URL('https://model.example')).proxied).toBe(false)
 })
