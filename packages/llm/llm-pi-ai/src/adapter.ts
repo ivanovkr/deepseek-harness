@@ -76,6 +76,37 @@ const ANTHROPIC_TOOL_UPDATE_PLACEHOLDER: ToolSchema = {
   parameters: { type: 'object', properties: {} },
 }
 
+/** Safe platform error codes; exception messages can contain credentials and request URLs. */
+const TRANSPORT_DIAGNOSTIC_CODES = new Set([
+  'SELF_SIGNED_CERT_IN_CHAIN', 'DEPTH_ZERO_SELF_SIGNED_CERT',
+  'UNABLE_TO_VERIFY_LEAF_SIGNATURE', 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY',
+  'CERT_HAS_EXPIRED', 'ERR_TLS_CERT_ALTNAME_INVALID', 'EPROTO',
+  'ERR_SSL_WRONG_VERSION_NUMBER', 'ERR_SSL_TLSV1_ALERT_UNKNOWN_CA',
+  'ERR_SSL_SSLV3_ALERT_HANDSHAKE_FAILURE', 'ERR_SSL_TLSV1_ALERT_INTERNAL_ERROR',
+  'ECONNREFUSED', 'ECONNRESET', 'EHOSTUNREACH', 'ENETUNREACH',
+  'ENOTFOUND', 'EAI_AGAIN', 'ETIMEDOUT', 'ERR_INVALID_ARG_VALUE', 'ERR_INVALID_ARG_TYPE',
+  'UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_HEADERS_TIMEOUT', 'UND_ERR_BODY_TIMEOUT', 'UND_ERR_SOCKET',
+])
+
+/** Retain only a recognized code from a fetch rejection, including nested and aggregate causes. */
+function transportDiagnosticCode(error: unknown): string | undefined {
+  const pending: unknown[] = [error]
+  const seen = new Set<Error>()
+  while (pending.length > 0) {
+    const current = pending.pop()
+    if (!(current instanceof Error) || seen.has(current)) continue
+    seen.add(current)
+    const code: unknown = Reflect.get(current, 'code')
+    if (typeof code === 'string' && TRANSPORT_DIAGNOSTIC_CODES.has(code)) return code
+    if (current instanceof AggregateError) {
+      const members: readonly unknown[] = current.errors
+      pending.push(...members)
+    }
+    pending.push(current.cause)
+  }
+  return undefined
+}
+
 /** One resolution's frozen view: the profiles and the collection built from them. */
 interface PiAiSnapshot {
   /** The resolved profiles this collection was built from, used as its identity. */
@@ -472,8 +503,22 @@ export class PiAiAdapter extends LlmAdapter {
       const { context, digest } = bindThinkingToPrefix(converted, model.api, prefixDigests, manualThinking, (count) => {
         this.config.onThinkingOmitted?.({ provider: options.provider, model: options.model, count })
       })
+      let transportCode: string | undefined
+      // These HTTP APIs support request-local fetch injection; other providers may reject it.
+      const captureTransport = model.api === 'openai-completions' || model.api === 'openai-responses'
+      const diagnosticFetch: typeof globalThis.fetch = async (input, init) => {
+        try {
+          const response = await globalThis.fetch(input, init)
+          transportCode = undefined
+          return response
+        } catch (error) {
+          transportCode = transportDiagnosticCode(error)
+          throw error
+        }
+      }
       const events = snapshot.models.streamSimple(model, context, {
         ...profileOptions(profile, reasoning, apiKey),
+        ...captureTransport ? { fetch: diagnosticFetch } : {},
         ...options.temperature === undefined ? {} : { temperature: options.temperature },
         ...options.maxTokens === undefined ? {} : { maxTokens: options.maxTokens },
         ...options.sessionId === undefined ? {} : { sessionId: String(options.sessionId) },
@@ -489,7 +534,13 @@ export class PiAiAdapter extends LlmAdapter {
             exhausted = true
             return
           }
-          yield result.value
+          const chunk = result.value
+          if (transportCode !== undefined && chunk.type === 'finish'
+            && chunk.reason.kind === 'error' && chunk.reason.failure.code === 'TRANSPORT') {
+            yield { ...chunk, reason: { ...chunk.reason, failure: {
+              ...chunk.reason.failure, message: `${chunk.reason.failure.message} (${transportCode})`,
+            } } }
+          } else yield chunk
         }
       } finally {
         if (!exhausted) {

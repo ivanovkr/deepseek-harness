@@ -38,14 +38,8 @@ export function mapUsage(usage: PiUsage): TokenUsage {
 // only that status; other wordings scan the whole message.
 const LEADING_HTTP_STATUS = /^[45]\d\d\b/
 
-// XXX(pi-ai upstream): pi-ai flattens the caught error to `error.message`
-// (api/anthropic-messages.js: `errorMessage = error instanceof Error ?
-// error.message : JSON.stringify(error)`), discarding the original Error and its
-// `cause` chain before it reaches us. undici carries the actionable transport
-// detail on `cause` (e.g. `SocketError: other side closed`) but hands the fetch
-// wrapper a bare `terminated`, so we are left pattern-matching terse words here.
-// If pi-ai ever forwards the original Error (or a fetch/dispatcher hook that lets
-// us capture the cause ourselves), classify on `code`/`cause` instead of text.
+// pi-ai flattens SDK errors into messages. The adapter preserves recognized fetch error codes for
+// OpenAI HTTP APIs; other provider paths still require classification from the public error text.
 function classifyPiAiError(message: string): BuiltinLlmFailureCode {
   const statusSource = LEADING_HTTP_STATUS.exec(message)?.[0] ?? message
   if (/\b(?:401|403)\b/.test(statusSource)) return 'AUTH'

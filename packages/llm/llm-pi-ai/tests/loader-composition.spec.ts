@@ -4,7 +4,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import Loader, { type ModuleLoaderV2 } from '@deepseek-ai/cordis-plugin-loader'
 import Include from '@deepseek-ai/cordis-plugin-include'
@@ -89,6 +89,25 @@ async function loadComposition(): Promise<{ ctx: Context; settingsPath: string }
 }
 
 describe('llm-pi-ai real dormant composition', () => {
+  it('reports the underlying TLS error through the Loader-mounted provider', async () => {
+    const { ctx, settingsPath } = await loadComposition()
+    await writeFile(settingsPath, [
+      '- id: llm-pi-ai', '  config:', '    providers:', '      deepseek:',
+      '        apiKeyEnv: PI_COMPOSITION_KEY', '        baseURL: https://diagnostic.invalid/v1', '',
+    ].join('\n'))
+    await vi.waitFor(() => {
+      expect(ctx.llm.listProviders().map(provider => provider.id)).toEqual(['deepseek'])
+    }, { timeout: 5000 })
+    const cause = Object.assign(new Error('private proxy credential'), { code: 'SELF_SIGNED_CERT_IN_CHAIN' })
+    const fetch = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('fetch failed', { cause }))
+    onTestFinished(() => { fetch.mockRestore() })
+    const result = await assemble(ctx, { model: 'deepseek-flash', messages: [] })
+    expect(result.finish).toEqual({
+      kind: 'error', failure: { code: 'TRANSPORT', message: 'Connection error. (SELF_SIGNED_CERT_IN_CHAIN)' },
+    })
+    expect(JSON.stringify(result)).not.toContain('private proxy credential')
+  })
+
   it('dispatches header contributors through the Loader-mounted adapter', async () => {
     const server = await mockServer([{ events: textEvents }])
     const { ctx, settingsPath } = await loadComposition()

@@ -120,6 +120,8 @@ The plugin answers "which models can this provider serve?" for a route a configu
 
 ### Failures and recovery
 
+OpenAI Chat Completions and Responses HTTP requests retain recognized platform network codes, such as `SELF_SIGNED_CERT_IN_CHAIN`, `ECONNREFUSED`, and `UND_ERR_CONNECT_TIMEOUT`, in terminal `TRANSPORT` failure messages. Diagnostics belong to each request, including concurrent calls. Only allowlisted codes are copied; raw fetch exception messages, URLs, and credentials are not included. Other protocols and WebSocket transports retain their existing diagnostics.
+
 A route pi-ai does not ship needs `api`, `baseURL`, and a non-empty `models` list; an unserviceable profile is refused where it is written, naming the route and model. Failures carry stable codes: a credential that cannot be used fails with `INVALID_CREDENTIAL` naming the route and reference, a route whose `apiKeyEnv` reference resolves to nothing fails with `MISSING_CREDENTIAL`, an unconfigured model fails with `UNKNOWN_MODEL`, and terminal provider failures distinguish `QUOTA` from transient `RATE_LIMIT`. `GenerateOptions.stop` is rejected with `UNSUPPORTED_OPTION` because pi-ai's common streaming UI cannot guarantee it across providers.
 
 Config updates strictly validate changed providers. Initial loading retains stored catalog failures as editable provider diagnostics; unchanged failed providers do not block edits elsewhere. Serviceable models remain selectable, and unresolved models fail before network I/O. Repairing or deleting the offending configuration clears its diagnostic.
