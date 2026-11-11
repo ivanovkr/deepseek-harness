@@ -29,6 +29,8 @@
     "packages/experimental/*/src/css-modules.d.ts",
     "packages/client/*/tests/**/*.ts",
     "packages/client/*/tests/**/*.tsx",
+    // Shared Host-backed settings fixture used by client onboarding tests.
+    "packages/settings/settings/tests/configuration-fixture.ts",
     "benchmarks/**/*.client.ts",
     "benchmarks/**/*.client.tsx",
     "benchmarks/support/**/*.ts",
