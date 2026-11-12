@@ -7,7 +7,7 @@
 
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type {
-  LlmDiscoveredModel, LlmModelDiscoveryRequest,
+  LlmDiscoveredModel, LlmModelDiscoveryRequest, ProxyCheckOutcome,
   SettingsNamespaceView, SettingsPathOpView,
 } from '@deepseek-ai/dsh-api-remotes/client'
 
@@ -65,6 +65,13 @@ export interface ModelsOperations {
    * @returns the candidates, or the refusal.
    */
   discoverModels(settingsNs: string, request: LlmModelDiscoveryRequest): Promise<ModelDiscoveryOutcome>
+  /**
+   * Check a candidate proxy from the Host without changing active routing.
+   * @param proxyUrl - candidate URL, which may contain authentication credentials.
+   * @param verifyTls - whether to verify certificates on proxied TLS connections.
+   * @returns connectivity result without echoing the URL or raw transport error.
+   */
+  checkProxy(proxyUrl: string, verifyTls: boolean): Promise<ProxyCheckOutcome>
 }
 
 /**
@@ -94,6 +101,11 @@ export function createModelsOperations(ctx: ClientContext): ModelsOperations {
       return response.ok
         ? { kind: 'found', models: response.value }
         : { kind: 'refused', message: response.error.message }
+    },
+    checkProxy: async (proxyUrl, verifyTls) => {
+      const response = await ctx.remote.settings.checkProxy(proxyUrl, verifyTls)
+      if (!response.ok) return { kind: 'failed' }
+      return response.value
     },
   }
 }

@@ -9,13 +9,14 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-Preview files in the right Sidebar and choose among registered renderers. Markdown and code support paged text; PDF, HTML, common images, and spreadsheets receive complete bytes; unknown extensions use plain text. Word and PowerPoint documents convert locally to PDF; spreadsheets open in the browser. The tab provides file status, renderer selection, wrap, and automatic or manual reload. Plugins can add local opening controls to the header and unsupported-preview empty state.
+Preview files and edit source text with Monaco in the right Sidebar, choosing among registered renderers. Markdown and code support paged text; PDF, HTML, common images, and spreadsheets receive complete bytes; unknown extensions use plain text. Word and PowerPoint documents convert locally to PDF; spreadsheets open in the browser. The tab provides file status, renderer selection, wrap, and automatic or manual reload. Plugins can add local opening controls to the header and unsupported-preview empty state.
 
 ## Table of Contents
 
 - [What it registers](#what-it-registers)
 - [Addresses](#addresses)
 - [How it reads](#how-it-reads)
+- [Source editor](#source-editor)
 - [Excel preview](#excel-preview)
 - [Office preview](#office-preview)
 - [Navigation](#navigation)
@@ -68,6 +69,15 @@ Shared copy comes from `sidebarDocumentPreview`; each builtin renderer owns its 
 Initial reads and renderer preparation, including Office conversion, share a centered 28px ongoing `StateDot` with the visible localized status “Rendering document...”. The status exposes the same accessible name and respects reduced-motion preferences. Additional text pages keep a compact inline spinner while loaded content stays visible. The PDF body loads its package-local `client.pdf.js` chunk only when a PDF preview mounts; PDF.js, its Worker source, and embedded support data stay out of the startup `client.js`. PDF and converted Word/PowerPoint pages form a vertical sequence with 12px page gaps and a 12px outer inset showing the theme-specific document background; fit width reserves this inset, and pages render lazily near the viewport; an unrendered page holds its place as a quiet 3:4 placeholder block. PDF.js’s official TextLayerBuilder manages selection boundaries and normalized copying over an aligned text layer. Each text layer is laid out detached and attached once complete, so its text measurement does not restyle the whole document; a page’s text becomes selectable when its layer completes. Selections use translucent blue in both themes while the canvas retains the document text; blank line breaks remain unhighlighted; alignment accounts for PDF page units, page rotation, and viewport resizing, and page disposal cancels both layers. Image-only PDFs contain no selectable text. Code previews show a tertiary-colored language label and a copy icon with a tooltip; wrapping remains in the document toolbar. They show source line numbers by default without including them in copied text; plain text uses the same font size and line height as code. Code sits on the pane's own background rather than the chat card's fill; its banner is adjacent to a full-height inner scrollport, so both scrollbars begin below the copy control.
 
 A leading YAML frontmatter block, opened by `---` on the first line and closed by `---` or `...`, renders above the Markdown body as a key/value list. String values show their resolved text, including folded and multiline strings; other scalars, lists, mappings, and aliases keep their authored YAML. Invalid YAML and non-mapping documents show the block verbatim, and a block without content shows nothing. An unterminated block remains Markdown. The YAML parser loads in the package-local `client.frontmatter-fields.js` chunk only when a document has frontmatter; the verbatim block stands in while it loads or if it fails to load. The source file is unchanged.
+
+<a id="source-editor"></a>
+## Source editor
+
+Recognized source and configuration suffixes plus `.txt` open in the locally bundled Monaco editor; specialized Markdown, HTML, SVG, CSV, PDF, image, and Office previews keep their defaults. The viewer menu retains the read-only Code and Plain text alternatives. **Save** and Ctrl/Cmd+S call the [version-checked save API](../../api/workspace-files/README.md#text-saves) under the file's addressed Session; this is Monaco, not a complete VS Code installation or extension host. Complete UTF-8 text is required; BOM and consistent LF or CRLF endings are preserved, while NUL data, invalid UTF-8, mixed endings, and oversized sources are refused.
+
+Unsaved drafts survive renderer replacement and file-tab closure in the Session's in-memory store: reopening the same address recovers the draft. Browser page exit warns while a dirty draft remains, including in a closed tab. Drafts are not persisted across confirmed page exit, plugin disposal, or application restart. **Discard draft and reload** asks before discarding edits. Observations never replace dirty text; a stale save retains it and blocks further saving until explicit reload and reconciliation. An unknown save outcome also blocks saving and asks the user to copy their edits and reread the file. Successful saves retain edits typed while the request was pending.
+
+The editor and its local Worker load on demand. Theme and code font size follow the application. Its left column contains the Session's expandable workspace tree; opening a file replaces the current preview after confirmation if the editor has unsaved changes. Monaco provides selection, undo, and in-file find/replace; TypeScript, JavaScript, Python, CSS, YAML, and shell have syntax grammars. Other text remains editable without language services. VS Code extensions, language servers, file creation, staging, commits, and pushes are not provided by this renderer; Git comparisons belong to the optional [Forge bundle](../../experimental/forge-bundle/README.md).
 
 <a id="excel-preview"></a>
 ## Excel preview
@@ -141,7 +151,7 @@ No direct effect; what the user reads here never enters a model request.
 ## Known Limitations and Deferred Work
 
 <a id="known-limitations-and-deferred-work"></a>
-- **Preview, not editing.** The viewers provide no file editing or shared search interface; a directory address fails with `not-regular-file`. Unknown extensions use the plain-text reader and remain subject to its UTF-8/NUL checks.
+- **Bounded text editing.** Only the source editor saves existing text files; other viewers remain read-only. A directory address fails with `not-regular-file`. Unknown extensions use the plain-text reader and remain subject to its UTF-8/NUL checks.
 - **Office conversion limits.** The preview does not launch native Office editors or download an engine. Binary `.doc` and `.ppt` files return no missing-font diagnostics. Conversion fidelity and resource limits belong to the [LibreOffice provider](../../document/office-kit/README.md).
 - **Sequential text and bounded complete files.** Deep source lines require the preceding pages; PDF, HTML, and images require a complete result within the Host's `maxFileBytes` cap.
 - **PDF raster allocation is bounded.** Each page bitmap is capped at 16,777,216 pixels; very large pages or high zoom on high-density displays can still render below device resolution.

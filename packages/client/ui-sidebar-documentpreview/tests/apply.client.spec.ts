@@ -31,6 +31,7 @@ import { LazyPdfBody } from '../src/client/pdf/LazyPdfBody.tsx'
 import { LazyExcelBody } from '../src/client/excel/LazyExcelBody.tsx'
 import { PDF_BODY_ID } from '../src/client/pdf/index.ts'
 import { CodeBody } from '../src/client/code/CodeBody.tsx'
+import { EditorBody } from '../src/client/editor/EditorBody.tsx'
 import { en, ja, zh, es, fr, de, ru, pt } from '../src/client/locales.ts'
 import type { textFace } from '../src/client/face.ts'
 import type { TextStore } from '../src/client/store.ts'
@@ -51,6 +52,7 @@ async function boot() {
   ctx.provide('fileDrag', { actions: { prepare: async () => ({ start: () => true, release: () => {} }), reportFailure: () => {} }, read: () => undefined } satisfies import('@deepseek-ai/cordis').Context['fileDrag'])
   ctx.provide('contextMenus', { open: vi.fn() } as never)
   ctx.provide('resources', createResources())
+  ctx.provide('theme', { getTheme: () => ({ active: { colorScheme: 'light' } }) } as never)
   ctx.provide('configForms', { developerTools: { enabled: createSnapshotStore(true) } } as never)
   const tabs = new SidebarRightTabRegistry(ctx)
   const registered: Recorded[] = []
@@ -104,6 +106,7 @@ describe('ui-sidebar-documentpreview apply', () => {
       ['sidebar.right.tab.document.office.pdf', '@deepseek-ai/dsh-client-ui-sidebar-documentpreview/office', 'sidebarPdf', LazyPdfBody],
       ['sidebar.right.tab.document', '@deepseek-ai/dsh-client-ui-sidebar-documentpreview/excel', 'sidebarExcel', LazyExcelBody],
       ['sidebar.right.tab.document', '@deepseek-ai/dsh-client-ui-sidebar-documentpreview/code', 'sidebarCodePreview', CodeBody],
+      ['sidebar.right.tab.document', '@deepseek-ai/dsh-client-ui-sidebar-documentpreview/editor', 'sidebarEditor', EditorBody],
     ])
     expect(Object.keys(registered[0]!.children!)).toEqual([
       'sidebar.right.tab.document', 'sidebar.right.tab.document.actions',
@@ -126,10 +129,13 @@ describe('ui-sidebar-documentpreview apply', () => {
     const previews = ctx.get('documentPreviews')
     if (previews === undefined) throw new Error('documentPreviews was not provided')
     const sharedHighlighter = '@deepseek-ai/dsh-client-ui-sidebar-documentpreview/code'
+    const editor = '@deepseek-ai/dsh-client-ui-sidebar-documentpreview/editor'
+    expect(previews.candidates('main.ts')[0]?.id).toBe(editor)
     const owners = new Map<string, string>()
     for (const definition of previews.getSnapshot()) {
       for (const extension of new Set([...definition.extensions, ...definition.binaryExtensions ?? []])) {
-        const winner = previews.candidates(`file.${extension}`)[0]
+        const winner = previews.candidates(`file.${extension}`).find(candidate => candidate.id !== editor)
+        if (definition.id === editor) continue
         const earlier = owners.get(extension)
         if (earlier === undefined) {
           expect(winner?.id, `${definition.id} declares .${extension}`).toBe(definition.id)

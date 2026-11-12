@@ -16,24 +16,28 @@ export { Config } from './onboarding-config.ts'
  */
 export async function apply(ctx: Context, config: Config): Promise<void> {
   await ctx.effect(async () => {
-    const install = (url: string) => {
+    const install = (url: string, verifyTls: boolean) => {
       if (!validProxyUrl(url)) throw new TypeError('Proxy must be an HTTP(S) URL without a path, query, or fragment')
+      // Keep model requests on the same HTTP/1.1 transport used by the proxy check.
       return installProxyFromEnvironment({
         get: name => ['HTTP_PROXY', 'HTTPS_PROXY'].includes(name) ? { value: url } : undefined,
-      }, () => undefined)
+      }, () => undefined, { allowH2: false, verifyTls })
     }
     let applied = config.proxyUrl.get()
-    let dispose = applied === undefined ? undefined : await install(applied)
+    let appliedVerifyTls = config.proxyVerifyTls.get()
+    let dispose = applied === undefined ? undefined : await install(applied, appliedVerifyTls)
     let updates = Promise.resolve()
     ctx.on('loader/volatile-update', () => {
       updates = updates.then(async () => {
         const next = config.proxyUrl.get()
-        if (next === applied) return
+        const nextVerifyTls = config.proxyVerifyTls.get()
+        if (next === applied && nextVerifyTls === appliedVerifyTls) return
         await dispose?.()
         dispose = undefined
         applied = undefined
-        if (next !== undefined) dispose = await install(next)
+        if (next !== undefined) dispose = await install(next, nextVerifyTls)
         applied = next
+        appliedVerifyTls = nextVerifyTls
       }).catch((_error) => {
         // Transport exceptions may contain proxy credentials; do not log their values.
         ctx.logger.error('Could not apply the configured outbound proxy')

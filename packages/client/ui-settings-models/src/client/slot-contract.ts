@@ -38,6 +38,8 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
      * Without a registrant the area renders nothing.
      */
     'settings.models.footer': { kind: 'list'; scope: 'root'; owner: ModelsFooterOwnerProps }
+    /** ChatGPT authorization card before the provider list. */
+    'settings.models.chatgpt': { kind: 'single'; scope: 'root' }
   }
 }
 

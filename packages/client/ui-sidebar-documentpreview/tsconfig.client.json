@@ -76,6 +76,9 @@
     },
     {
       "path": "../ui-context-menu"
+    },
+    {
+      "path": "../ui-theme/tsconfig.client.json"
     }
   ]
 }

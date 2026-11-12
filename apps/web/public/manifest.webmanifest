@@ -1,6 +1,6 @@
 {
-  "name": "DeepSeek Harness",
-  "short_name": "DSH",
+  "name": "Amadeus Harness",
+  "short_name": "Amadeus",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

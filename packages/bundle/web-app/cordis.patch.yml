@@ -139,9 +139,11 @@
     # reports an actionable error when its settings-domain provider is absent.
     - id: ui-settings-account
       name: '@deepseek-ai/dsh-client-ui-settings-account'
+      disabled: true
 
     - id: ui-account-notifications
       name: '@deepseek-ai/dsh-client-ui-account-notifications'
+      disabled: true
 
     - id: settings-controller
       name: '@deepseek-ai/dsh-api-settings-controller'
@@ -493,6 +495,9 @@
 
     - id: ui-trajectory
       name: '@deepseek-ai/dsh-client-ui-trajectory'
+
+    - id: ui-development
+      name: '@deepseek-ai/dsh-client-ui-development'
 
 # ── the agent plane moves behind agent presets ─────────────────────────────
 #

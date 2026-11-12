@@ -6,11 +6,18 @@ import { clientBundle } from '../tsdown.client.ts'
 
 const bundle = clientBundle(import.meta.dirname, ['lib/types/index.js'], {
   clientBanner: fileName => fileName.endsWith('client.pdf.js') ? pdfLicenseBanner()
-    : fileName.endsWith('client.excel.js') ? excelLicenseBanner() : undefined,
+    : fileName.endsWith('client.excel.js') ? excelLicenseBanner()
+      : fileName.endsWith('client.runtime.js') ? monacoLicenseBanner() : undefined,
 })
 const require = createRequire(import.meta.url)
 const workerSpecifier = 'pdfjs-dist/build/pdf.worker.min.mjs?raw'
 const workerModule = '\0dsh-pdf-worker.mjs'
+
+/** Retain Monaco's license alongside its lazily bundled editor and Worker. */
+function monacoLicenseBanner(): string {
+  const root = dirname(require.resolve('monaco-editor/package.json'))
+  return ['//! Bundled Monaco editor license', ...readFileSync(join(root, 'LICENSE'), 'utf8').trimEnd().split('\n').map(line => `// ${line}`)].join('\n')
+}
 
 /** FortuneSheet omits its repository license from the npm payload. */
 function excelLicenseBanner(): string {
@@ -70,12 +77,24 @@ const pdfWorker: NonNullable<UserConfig['plugins']> = [{
 /** Embed a self-contained browser parser without giving it a loader-module dependency. */
 const excelWorker: NonNullable<UserConfig['plugins']> = [{
   name: 'dsh-excel-worker-source',
-  resolveId(source) { return source === './worker.ts?raw' ? '\0dsh-excel-worker-source' : null },
+  resolveId(source) {
+    if (source === './worker.ts?raw') return '\0dsh-excel-worker-source'
+    if (source === './editor.worker.ts?raw') return '\0dsh-editor-worker-source'
+    if (source === './codicon.font.ts?raw') return '\0dsh-editor-icon-font'
+    return null
+  },
   async load(id) {
-    if (id !== '\0dsh-excel-worker-source') return null
+    if (id === '\0dsh-editor-icon-font') {
+      const font = require.resolve('monaco-editor/esm/vs/base/browser/ui/codicons/codicon/codicon.ttf')
+      this.addWatchFile(font)
+      return `export default ${JSON.stringify(`data:font/ttf;base64,${readFileSync(font).toString('base64')}`)};`
+    }
+    if (id !== '\0dsh-excel-worker-source' && id !== '\0dsh-editor-worker-source') return null
     const parent = this
     const worker = await Rolldown.rolldown({
-      input: join(import.meta.dirname, 'src/client/excel/worker.ts'), platform: 'browser',
+      input: id === '\0dsh-editor-worker-source'
+        ? require.resolve('monaco-editor/esm/vs/editor/editor.worker.js')
+        : join(import.meta.dirname, 'src/client/excel/worker.ts'), platform: 'browser',
       resolve: { mainFields: ['browser', 'module', 'main'], aliasFields: [['browser']] },
       transform: { define: { 'process.env.NODE_ENV': JSON.stringify('production') } },
       plugins: [{
@@ -97,14 +116,38 @@ const excelWorker: NonNullable<UserConfig['plugins']> = [{
   },
 }]
 
-export default (options: Parameters<typeof bundle>[0]): UserConfig[] => bundle(options).map(config =>
-  config.name?.endsWith('/client') === true ? {
+/** Keep Monaco's compiler helpers inside its lazy factory, never in a shared sibling chunk. */
+const editorBoundary: NonNullable<UserConfig['plugins']> = [{
+  name: 'dsh-document-editor-chunk',
+  resolveId(source, importer) {
+    if (importer?.replaceAll('\\', '/').endsWith('/client/editor/index.ts')
+      || importer?.replaceAll('\\', '/').endsWith('/client/editor/index.js')) {
+      if (source === './runtime.ts' || source === './runtime.js') return { id: './client.runtime.js', external: true }
+    }
+    return null
+  },
+}]
+
+export default (options: Parameters<typeof bundle>[0]): UserConfig[] => {
+  const configs = bundle(options)
+  const runtimeBase = bundle(options).find(config => config.name?.endsWith('/client') === true)
+  const result: UserConfig[] = configs.map(config => config.name?.endsWith('/client') === true ? {
     ...config,
     inputOptions: {
       ...config.inputOptions,
       resolve: { ...config.inputOptions?.resolve, mainFields: ['browser', 'module', 'main'], aliasFields: [['browser']] },
     },
-    plugins: [config.plugins, pdfWorker, excelWorker],
+    plugins: [config.plugins, pdfWorker, excelWorker, editorBoundary],
     define: { ...config.define, __DSH_PDFJS_ASSETS__: pdfAssets() },
-  } : config,
-)
+  } : config)
+  if (runtimeBase !== undefined) result.push({
+    ...runtimeBase, name: `${runtimeBase.name}/editor`,
+    entry: options.env?.DSH_BUILD_FACE === 'client' ? 'lib/types/client/editor/runtime.js' : 'src/client/editor/runtime.ts',
+    plugins: [runtimeBase.plugins, excelWorker],
+    outputOptions: {
+      ...runtimeBase.outputOptions, entryFileNames: 'client.runtime.js', codeSplitting: false,
+      banner: 'window.__ModuleLoader__.load({ id: "@deepseek-ai/dsh-client-ui-sidebar-documentpreview", chunk: "client.runtime.js", factory: (require) => {',
+    },
+  })
+  return result
+}

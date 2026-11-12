@@ -29,6 +29,8 @@ kind: "package-reference"
 
 `settings.describe()` 返回部署信息，以及在 `redactSecrets: true` 下读取的所有 namespace。`settings.update`、`settings.replace` 与 `settings.mutate` 暴露 settings 服务的三种写入操作，并返回该 namespace 的新脱敏视图；陈旧写入使用 `settings-conflict`，其他提供方拒绝使用 `settings-rejected`。
 
+`settings.checkProxy(proxyUrl)` 使用该候选代理的独立 dispatcher，向 DeepSeek Messages API 发送有时限、无凭据的请求，与内置聊天适配器使用相同 endpoint。它只返回安全的诊断类别与 HTTP 状态，不记录或返回 URL 与原始传输错误。由于探测请求不带 API Key，HTTP 401 表示网络连接成功。此操作不会更改进程级 dispatcher。
+
 `settings.openSettingsDocument()` 准备提供方持有的文档，并用原生文本编辑器打开；该方法不接受浏览器提供的文件系统目标。
 
 -----

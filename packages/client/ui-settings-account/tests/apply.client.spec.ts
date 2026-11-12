@@ -3,7 +3,7 @@
 import { afterEach, beforeEach, expect, onTestFinished, vi } from 'vitest'
 import { ok } from '@deepseek-ai/dsh-remote-mock'
 import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
-import { createClientTest, type TestClient, webApp } from '@deepseek-ai/dsh-client-test-runtime/src/assembly/index.ts'
+import { createClientTest, type TestClient, webAppWithPatches } from '@deepseek-ai/dsh-client-test-runtime/src/assembly/index.ts'
 import type {
   AccountDetails, AccountUserId, AccountView, SignInAttemptId,
 } from '@deepseek-ai/dsh-deepseek-account/types'
@@ -22,8 +22,9 @@ import type { AccountPlatformHostInjected } from '../src/client/AccountPlatformH
 import { AccountQuotaNotice } from '../src/client/AccountQuotaNotice.tsx'
 import type { AccountQuotaNoticeInjected } from '../src/client/AccountQuotaNotice.tsx'
 
-const it = createClientTest({ roster: webApp })
-const withoutAccountAccess = createClientTest({ roster: webApp }, { access: action => action !== 'account/watch' })
+const accountRoster = webAppWithPatches([{ id: 'ui-settings-account', disabled: false }])
+const it = createClientTest({ roster: accountRoster })
+const withoutAccountAccess = createClientTest({ roster: accountRoster }, { access: action => action !== 'account/watch' })
 const SELF = '@deepseek-ai/dsh-client-ui-settings-account'
 const view: AccountView = {
   status: 'signed-out', attempt: null,

@@ -32,3 +32,13 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
 export interface SettingsDocumentOpenValue {
   readonly opened: true
 }
+
+/** Safe classifications returned by the one-shot proxy connectivity check. */
+export type ProxyCheckOutcome =
+  | { readonly kind: 'connected'; readonly status: number }
+  | { readonly kind: 'proxy-auth' }
+  | { readonly kind: 'dns' }
+  | { readonly kind: 'refused' }
+  | { readonly kind: 'timeout' }
+  | { readonly kind: 'tls' }
+  | { readonly kind: 'failed' }

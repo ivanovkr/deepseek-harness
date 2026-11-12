@@ -26,7 +26,7 @@ const NavigatorSeat = memo(function NavigatorSeat({ useTabInfo, renderFactorySlo
   const onOpen = useCallback((address: string): void => {
     tab.actions.openResource(address, { replaceTab: true })
   }, [tab.actions])
-  return renderFactorySlot('sidebar.files.navigator', { useTabInfo, page: false, onOpen })
+  return renderFactorySlot('sidebar.files.navigator', { useTabInfo, page: false, treeOnly: true, onOpen })
 })
 
 /** The navigator's toggle at the header's end. */

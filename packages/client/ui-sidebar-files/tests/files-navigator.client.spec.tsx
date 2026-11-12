@@ -58,6 +58,22 @@ function focusedPath(): string | null | undefined {
 }
 
 describe('FileNavigator beside a preview', () => {
+  it('draws an inline tree without search controls and opens a selected file', async () => {
+    const h = mountNavigator(A, {}, ROOT, undefined, true)
+    expect(h.view.container.querySelector('[data-files-tree-only]')).not.toBeNull()
+    expect(h.view.container.querySelector('[data-files-search]')).toBeNull()
+    expect(h.view.container.querySelector('[role="separator"]')).toBeNull()
+    await act(() => h.script.watches.ready(ROOT))
+    await act(() => h.script.settle({ ok: true, value: ROOT_LEVEL }))
+    const src = h.view.getByRole('button', { name: 'src' })
+    expect(src.getAttribute('aria-expanded')).toBe('false')
+    act(() => { fireEvent.click(src) })
+    await act(() => h.script.watches.ready(`${ROOT}/src`))
+    await act(() => h.script.settle({ ok: true, value: SRC_LEVEL }))
+    act(() => { fireEvent.click(h.view.getByRole('button', { name: 'b.ts' })) })
+    expect(h.onOpen).toHaveBeenCalledWith(B)
+  })
+
   it('stays hidden and lists nothing until the toggle shows it', async () => {
     const h = mountNavigator(A)
     expect(h.view.container.querySelector('[data-files-navigator]')).toBeNull()

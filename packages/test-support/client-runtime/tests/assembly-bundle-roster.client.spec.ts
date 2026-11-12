@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { getStaticModules } from '@deepseek-ai/dsh-client-web/src/seed.ts'
 import { afterAll, describe, expect, it, onTestFinished } from 'vitest'
 import { MODULES_PACKAGE } from '../src/assembly/modules.ts'
-import { WEB_PROFILE_BUNDLES, bundleRoster, webApp } from '../src/assembly/bundle-roster.ts'
+import { WEB_PROFILE_BUNDLES, bundleRoster, webApp, webAppWithPatches } from '../src/assembly/bundle-roster.ts'
 
 function profileScope(name: string) {
   const services: Record<string, object | undefined> = { profileContext: { name } }
@@ -13,6 +13,21 @@ function profileScope(name: string) {
 }
 
 describe('webApp (the real web profile)', () => {
+  it('opts account fixtures in without enabling accounts in the shipped roster', () => {
+    const accountNames = [
+      '@deepseek-ai/dsh-client-ui-settings-account',
+      '@deepseek-ai/dsh-client-ui-account-notifications',
+    ]
+    const fixture = webAppWithPatches([
+      { id: 'ui-settings-account', disabled: false },
+      { id: 'ui-account-notifications', disabled: false },
+    ])
+    for (const name of accountNames) {
+      expect(fixture.rows.map(row => row.name)).toContain(name)
+      expect(webApp.rows.map(row => row.name)).not.toContain(name)
+    }
+  })
+
   it('composes dsh-base then dsh-web-app: unique names, inject edges on roster rows or platform seed words', () => {
     expect(WEB_PROFILE_BUNDLES).toEqual(['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app'])
     const names = webApp.rows.map(row => row.name)

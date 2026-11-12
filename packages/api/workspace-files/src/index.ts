@@ -1,5 +1,5 @@
 /**
- * Workspace file service: read-only file previews, workspace directory
+ * Workspace file service: file previews, guarded text saves, workspace directory
  * listings, workspace-wide name and path search, and the
  * filesystem-observation change feed, exposed as `workspaceFiles`.
  *
@@ -9,7 +9,8 @@
  * read-containment restriction. Directory listings, searches, and change
  * observations remain workspace-scoped; a search reports workspace-relative
  * paths. File-kind checks and configured read caps apply to
- * every preview; this service exposes no mutations.
+ * every preview. Text saves instead require a resolved Session, workspace
+ * containment, its sandbox policy, and an atomic version-guarded replacement.
  *
  * A page is cut from `streamText`, which decodes and rejects non-UTF-8 as it
  * goes, so the file is read only up to the first character past the page and
@@ -23,10 +24,9 @@
 import { posix, win32 } from 'node:path'
 import type { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
-import type {} from '@deepseek-ai/dsh-fs'
-import type { FsDirEntry, FsInfo, FsPathInfo, FsTarget } from '@deepseek-ai/dsh-fs'
+import type { FsDirEntry, FsInfo, FsPathInfo, FsTarget, FsVersion } from '@deepseek-ai/dsh-fs'
 import type {} from '@deepseek-ai/dsh-sandbox-policy'
-import type {} from '@deepseek-ai/dsh-session'
+import type { Session } from '@deepseek-ai/dsh-session'
 import type {} from '@deepseek-ai/dsh-session-persistence'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import { Remote, RemoteError, TypertRemoteService, type TypertLookup } from '@deepseek-ai/dsh-typert-protocol'
@@ -185,7 +185,7 @@ function directoryEntry(child: FsDirEntry): WorkspaceDirectoryEntry {
   }
 }
 
-/** Host Remote file reads and workspace directory observations over the composed filesystem. */
+/** Host Remote file reads, guarded saves, and workspace observations over the composed filesystem. */
 export class WorkspaceFiles extends TypertRemoteService {
   static inject = ['fs', 'sandboxPolicy', 'sessions', 'typert']
 
@@ -291,6 +291,71 @@ export class WorkspaceFiles extends TypertRemoteService {
       throw cause
     })
     return { ...this.statOf(target, info), offset: 0, data, eof: true }
+  }
+
+  /**
+   * Replace an existing workspace file with UTF-8 text under the Session's policy.
+   * The backend compares the version and publishes atomically; no unconditional write or create is allowed.
+   * @param session - resolved live Session supplying mutation authority and sandbox policy.
+   * @param path - absolute or workspace-relative path; resolved targets outside the workspace are refused.
+   * @param text - complete replacement text, without NUL bytes, bounded by maxBytes and maxFileBytes.
+   * @param expectedVersion - opaque version returned by a preceding read; empty versions are refused.
+   * @param signal - cancellation before atomic publication; cancellation after commit does not undo it.
+   * @returns the committed version, canonical path, and encoded byte count, without another stat.
+   * @throws RemoteError for stale versions, policy denial, invalid targets, size limits, cancellation, or I/O failure.
+   * Validation and stale failures leave content unchanged; write-failed reports an unknown outcome that requires rereading.
+   */
+  @Remote
+  async writeText(
+    session: Session,
+    path: string,
+    text: string,
+    expectedVersion: string,
+    signal: AbortSignal,
+  ): Promise<WorkspaceFileStat> {
+    try {
+      signal.throwIfAborted()
+      if (expectedVersion.length === 0) throw new RemoteError('gateway/bad-request', 'expectedVersion is required', {})
+      if (text.includes(NUL)) throw new RemoteError('workspace-file/not-text', 'replacement text contains NUL bytes', { path })
+      const bytes = Buffer.byteLength(text, 'utf8')
+      const limit = Math.min(this.config.maxBytes, this.config.maxFileBytes)
+      if (bytes > limit) {
+        throw new RemoteError('workspace-file/too-large', `replacement for "${path}" exceeds the ${limit} byte cap`, { path, limit })
+      }
+      const policy = this.ctx.sandboxPolicy.resolve({ session })
+      if (policy.mode === 'read-only') {
+        throw new RemoteError('workspace-file/write-denied', `the Session's read-only policy denies saving "${path}"`, { path })
+      }
+      const scope = { sessionId: session.id, workspaceRoot: policy.workspaceRoot }
+      const { root, workspaceRoot, entry } = await this.inspect(scope, path, signal)
+      if (entry.type !== 'file') {
+        throw new RemoteError('workspace-file/not-regular-file', `"${path}" is a ${entry.type}`, { path, kind: entry.type })
+      }
+      const target = await this.confine(root, workspaceRoot, path, signal)
+      const outcome = await this.ctx.fs.writeText(
+        target, text, { kind: 'replaceIfVersion', version: expectedVersion as FsVersion }, signal, policy,
+      )
+      return { absolutePath: this.ctx.fs.processPath(target), version: outcome.version, bytes }
+    } catch (cause: unknown) {
+      if (cause instanceof RemoteError) throw cause
+      const code = typeof cause === 'object' && cause !== null && 'code' in cause ? cause.code : undefined
+      if (code === 'FS_STALE_VERSION') {
+        throw new RemoteError('workspace-file/stale-version', `"${path}" changed; reread before saving`, { path }, { cause })
+      }
+      if (code === 'FS_SANDBOX_DENIED' || code === 'FS_PERMISSION_DENIED') {
+        throw new RemoteError('workspace-file/write-denied', `saving "${path}" was denied`, { path }, { cause })
+      }
+      if (code === 'FS_NOT_REGULAR_FILE') {
+        throw new RemoteError('workspace-file/not-regular-file', `"${path}" is not a regular file`, { path, kind: 'other' }, { cause })
+      }
+      if (code === 'FS_NOT_FOUND') {
+        throw new RemoteError('workspace-file/not-found', `no entry at "${path}"`, { path }, { cause })
+      }
+      if (code === 'FS_ABORTED' || (signal.aborted && cause === signal.reason)) {
+        throw new RemoteError('workspace-file/aborted', `saving "${path}" was cancelled before publication`, { path }, { cause })
+      }
+      throw new RemoteError('workspace-file/write-failed', `saving "${path}" failed; reread to determine the current contents`, { path, outcome: 'unknown' }, { cause })
+    }
   }
 
   /**

@@ -11,16 +11,10 @@ afterEach(() => {
   cleanup()
   vi.unstubAllEnvs()
   vi.restoreAllMocks()
-  vi.unstubAllGlobals()
 })
 
-const HOLES = [
-  'sidebar.brand.mark',
-  'sidebar.brand.name',
-  'conversation.hero.frame',
-] as const
-
-const HERO_HOLE = 'conversation.hero.brand.mark'
+const BRAND_HOLES = ['sidebar.brand.mark', 'sidebar.brand.name', 'conversation.hero.brand.mark'] as const
+const FRAME_HOLE = 'conversation.hero.frame'
 
 async function bench(declare = true) {
   const ctx = new Context()
@@ -28,87 +22,71 @@ async function bench(declare = true) {
   const slots = ctx.get('slots') as SlotRegistry
   const declareHoles = () => slots.register({
     name: 'root',
-    children: Object.fromEntries([...HOLES, HERO_HOLE].map(name => [name, {
-      kind: name === 'conversation.hero.frame' ? 'hoc' : 'single',
-      scope: 'root',
+    children: Object.fromEntries([...BRAND_HOLES, FRAME_HOLE].map(name => [name, {
+      kind: name === FRAME_HOLE ? 'hoc' : 'single', scope: 'root',
     }])),
   } as never, () => null)
   const disposeHoles = declare ? declareHoles() : undefined
   return { ctx, slots, declareHoles, disposeHoles }
 }
 
-describe('official browser-brand plugin', () => {
-  it('keeps the host Loader entry inert', () => {
+describe('ВСЦМ browser-brand plugin', () => {
+  it('keeps the host Loader entry inert and requires only slots', () => {
     expect(hostApply).not.toThrow()
-  })
-
-  it('declares only the slot service it uses', () => {
     expect(inject).toEqual(['slots'])
   })
 
-  it('keeps local sidebar branding and provides the same blank-home feedback', async () => {
+  it('replaces the home mark in local builds without occupying the sidebar or adding whale decoration', async () => {
     vi.stubEnv('DSH_CLIENT_BUILD_PROFILE', 'local')
-    const subject = await bench()
-    await subject.ctx.plugin({ inject: [...inject], apply }).await()
-    expect(subject.slots.entries('sidebar.brand.mark')).toHaveLength(0)
-    expect(subject.slots.entries('sidebar.brand.name')).toHaveLength(0)
-    expect(subject.slots.entries('conversation.hero.frame')).toHaveLength(1)
-  })
-
-  it('fills declarations before or after apply and removes every occupant on teardown', async () => {
-    vi.stubEnv('DSH_CLIENT_BUILD_PROFILE', 'official')
-    const before = await bench()
-    const fiber = before.ctx.plugin({ inject: [...inject], apply })
-    await fiber.await()
-    for (const hole of HOLES) expect(before.slots.entries(hole)).toHaveLength(1)
-
-    before.disposeHoles?.()
-    for (const hole of HOLES) expect(before.slots.entries(hole)).toHaveLength(0)
-    before.declareHoles()
-    await Promise.resolve()
-    for (const hole of HOLES) expect(before.slots.entries(hole)).toHaveLength(1)
-
-    await fiber.dispose()
-    for (const hole of HOLES) expect(before.slots.entries(hole)).toHaveLength(0)
-
-    const after = await bench(false)
-    await after.ctx.plugin({ inject: [...inject], apply }).await()
-    for (const hole of HOLES) expect(after.slots.entries(hole)).toHaveLength(0)
-    after.declareHoles()
-    await Promise.resolve()
-    for (const hole of HOLES) expect(after.slots.entries(hole)).toHaveLength(1)
-  })
-
-  it('leaves the conversation hero on its declaring fallback even in official builds', async () => {
-    vi.stubEnv('DSH_CLIENT_BUILD_PROFILE', 'official')
-    const subject = await bench()
-    await subject.ctx.plugin({ inject: [...inject], apply }).await()
-    expect(subject.slots.entries(HERO_HOLE)).toHaveLength(0)
-  })
-
-  it('registers the whale as a self-contained frame layer without replacing the hero mark', async () => {
-    vi.stubEnv('DSH_CLIENT_BUILD_PROFILE', 'official')
     const subject = await bench()
     const fiber = subject.ctx.plugin({ inject: [...inject], apply })
     try {
       await fiber.await()
-      const [entry] = subject.slots.entries('conversation.hero.frame')
-      expect(entry?.options.id).toBe('pixel-whale')
-      expect(entry?.inject).toBeUndefined()
-      expect(subject.slots.entries(HERO_HOLE)).toHaveLength(0)
-    } finally {
+      expect(subject.slots.entries('sidebar.brand.mark')).toHaveLength(0)
+      expect(subject.slots.entries('sidebar.brand.name')).toHaveLength(0)
+      expect(subject.slots.entries('conversation.hero.brand.mark')).toHaveLength(1)
+      expect(subject.slots.entries(FRAME_HOLE)).toHaveLength(0)
+    } finally { await fiber.dispose() }
+  })
+
+  it('fills declarations before or after apply and removes every occupant on teardown', async () => {
+    vi.stubEnv('DSH_CLIENT_BUILD_PROFILE', 'official')
+    for (const declared of [true, false]) {
+      const subject = await bench(declared)
+      const fiber = subject.ctx.plugin({ inject: [...inject], apply })
+      await fiber.await()
+      if (!declared) {
+        for (const hole of BRAND_HOLES) expect(subject.slots.entries(hole)).toHaveLength(0)
+        subject.declareHoles()
+        await Promise.resolve()
+      }
+      for (const hole of BRAND_HOLES) expect(subject.slots.entries(hole)).toHaveLength(1)
+      expect(subject.slots.entries(FRAME_HOLE)).toHaveLength(0)
+      if (declared) {
+        subject.disposeHoles?.()
+        for (const hole of BRAND_HOLES) expect(subject.slots.entries(hole)).toHaveLength(0)
+        subject.declareHoles()
+        await Promise.resolve()
+        for (const hole of BRAND_HOLES) expect(subject.slots.entries(hole)).toHaveLength(1)
+      }
       await fiber.dispose()
+      for (const hole of BRAND_HOLES) expect(subject.slots.entries(hole)).toHaveLength(0)
     }
   })
 
-  it('renders the official name independently from both requested mark sizes', () => {
-    const name = render(<OfficialBrandName />)
-    expect(name.container.querySelector('svg')?.getAttribute('viewBox')).toBe('26 0 156 24')
+  it('renders the locale-owned name and supplied artwork at sidebar and hero sizes', () => {
+    const name = render(<OfficialBrandName t={() => 'ВСЦМ Harness'} />)
+    expect(name.container.textContent).toBe('ВСЦМ Harness')
+    expect(name.container.querySelector('svg')).toBeNull()
     name.unmount()
-
-    const mark = render(<OfficialBrandMark size={34} />)
-    expect(mark.container.querySelector('svg')?.getAttribute('width')).toBe('34')
+    const mark = render(<OfficialBrandMark size={34} className="hero" />)
+    const image = mark.container.querySelector('img')!
+    expect(image.getAttribute('src')).toMatch(/vscm-logo\.svg|data:image\/svg\+xml/)
+    expect(image.getAttribute('width')).toBe('34')
+    expect(image.getAttribute('height')).toBe('34')
+    expect(image.alt).toBe('')
     mark.rerender(<OfficialBrandMark size={24} />)
-    expect(mark.container.querySelector('svg')?.getAttribute('width')).toBe('24')
+    expect(image.getAttribute('width')).toBe('24')
+    expect(image.getAttribute('height')).toBe('24')
   })
 })

@@ -9,17 +9,20 @@ export interface Config {
   credentialOnboarding: boolean
   /** Shared outbound HTTP(S) proxy; absent retains the launch environment. */
   proxyUrl: Volatile<string | undefined>
+  /** Whether TLS certificates on proxied connections must be verified. */
+  proxyVerifyTls: Volatile<boolean>
   /** Whether the initial network setup has been acknowledged. */
   proxySetupComplete: Volatile<boolean>
 }
 
 /** Validate Host configuration and its public page-bootstrap payload. */
-export const Config: z<{ credentialOnboarding?: boolean; proxyUrl?: string; proxySetupComplete?: boolean }, Config> = z.object({
+export const Config: z<{ credentialOnboarding?: boolean; proxyUrl?: string; proxyVerifyTls?: boolean; proxySetupComplete?: boolean }, Config> = z.object({
   credentialOnboarding: z.boolean().default(true),
   proxyUrl: z.transform(z.string(), (value) => {
     if (!validProxyUrl(value)) throw new TypeError('Proxy must be an HTTP(S) URL without a path, query, or fragment')
     return value
   }).role('secret').volatile(),
+  proxyVerifyTls: z.boolean().default(true).volatile(),
   proxySetupComplete: z.boolean().default(false).volatile(),
 })
 

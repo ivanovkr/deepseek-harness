@@ -11,6 +11,7 @@
     "src/types.ts"
   ],
   "references": [
+    { "path": "../../credentials/authorization" },
     { "path": "../../team/agent-team" },
     { "path": "../../client/product-analytics/tsconfig.client.json" },
     {

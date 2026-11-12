@@ -280,7 +280,7 @@ export interface Config {
 
 ## `@deepseek-ai/dsh-api-settings-controller`
 
-- `source`: [`packages/api/settings-controller/src/index.ts:35`](../packages/api/settings-controller/src/index.ts)
+- `source`: [`packages/api/settings-controller/src/index.ts:37`](../packages/api/settings-controller/src/index.ts)
 
 ```ts config-catalog
 /** Host integrations replaceable by direct unit tests. */
@@ -681,13 +681,18 @@ export type OnboardingProcess = 'compact' | 'standard' | 'detailed'
 
 ## `@deepseek-ai/dsh-client-ui-settings-models`
 
-- `source`: [`packages/client/ui-settings-models/src/onboarding-config.ts:6`](../packages/client/ui-settings-models/src/onboarding-config.ts)
+- `refs`: `Volatile` (`@deepseek-ai/cordis`)
+- `source`: [`packages/client/ui-settings-models/src/onboarding-config.ts:7`](../packages/client/ui-settings-models/src/onboarding-config.ts)
 
 ```ts config-catalog
 /** Onboarding options after schema defaults are applied. */
 export interface Config {
   /** Offer the browser API-key step when no native shell owns credential onboarding. */
   credentialOnboarding: boolean
+  /** Shared outbound HTTP(S) proxy; absent retains the launch environment. */
+  proxyUrl: Volatile<string | undefined>
+  /** Whether the initial network setup has been acknowledged. */
+  proxySetupComplete: Volatile<boolean>
 }
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-client-ui-settings-models -->
@@ -2677,6 +2682,31 @@ export interface Config {
 }
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-office-kit -->
+
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-openspec -->
+<a id="deepseek-aidsh-openspec"></a>
+
+## `@deepseek-ai/dsh-openspec`
+
+- `inject`: `tools` · `workingDirectory` · `fs` · `subprocess` · `sandbox` · `sandboxPolicy`
+- `source`: [`packages/plan/openspec/src/index.ts:23`](../packages/plan/openspec/src/index.ts)
+
+```ts config-catalog
+/** Deployment-owned resource limits for OpenSpec operations. */
+export interface Config {
+  /** Deadline for one official OpenSpec invocation. */
+  timeoutMs: number
+  /** Combined stdout and stderr byte ceiling. */
+  maxOutputBytes: number
+  /** Managed subprocess termination grace period. */
+  graceMs: number
+  /** Complete planning document and review byte ceiling. */
+  maxArtifactBytes: number
+  /** Complete planning file and directory ceiling. */
+  maxArtifactFiles: number
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-openspec -->
 
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-permission-presets -->
 <a id="deepseek-aidsh-permission-presets"></a>

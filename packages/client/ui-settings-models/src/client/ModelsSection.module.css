@@ -3,6 +3,38 @@
  * render the light-mode literals written as their fallbacks and stay light
  * under the dark theme. */
 
+.oauthBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.oauthActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.oauthActions button {
+  height: auto;
+  min-height: 36px;
+  padding-block: 6px;
+  text-align: start;
+}
+
+.oauthLink {
+  color: var(--dsw-alias-label-primary);
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.oauthCode {
+  font-weight: 500;
+  user-select: text;
+}
+
 .section {
   display: flex;
   flex-direction: column;

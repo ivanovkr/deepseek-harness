@@ -68,6 +68,14 @@ flow 声明它写入的凭据记录、面向用户的标签以及它提供的登
 
 每个凭据同时只允许一次尝试。交互随请求传入而非存放在注册表中，因此提问恰好抵达发问的那个页面；无头调用方传入一个直接拒绝的交互实现。当记录在尝试期间被提交并被观察到时，`begin()` 报告 `{ status: 'authorized' }`；当人拒绝或调用方撤销时，报告 `{ status: 'cancelled' }`。`cancel(key)` 从第二次调用撤销正在运行的尝试，服务于那种用第二次调用来响应「取消」按钮、却不持有第一次调用 signal 的请求/响应式传输。
 
+### Remote 授权
+
+本包同时挂载 `ctx.authorizationRemote`，负责生成的 `ctx.remote.authorization` 命名空间。`list()` 返回已注册的 flow；`status(key)` 仅返回 `key`、`configured`、`writable` 与 `inFlight`，从不返回凭据载荷。模型设置集成可以选择现有的 `llm-pi-ai/openai-codex` 项并运行其 `oauth` 方法，无须实现提供方协议。
+
+`begin(key, method, signal)` 流式返回 `notice`、`prompt`、`prompt-withdrawn` 以及终结的 `settled` 事件。省略 method 会选择 flow 的第一个方法。Prompt 事件包含不透明的 `id` 和已移除 signal 的 text、secret 或 select 问题。`answer(key, id, value)` 只回答对应的问题；过期 id 和不属于 select 选项的值会被拒绝。回答不会被保留或记录日志。`cancel(key)` 撤销发起 peer 的尝试；断开连接或关闭其流也会撤销。其他 peer 不能回答或取消该尝试，重复发起也不会取消原始尝试。已获准的凭据提交会在流结束前完成结算。
+
+失败会以 `authorization/rejected` 拒绝，并携带可机器读取的 `details.code`。Flow 失败时还可能包含安全的 `details.diagnostic` 分类，例如 DNS、超时、TLS 或 HTTP 状态类别；提供方消息、原因、URL 与凭据值不会穿过 wire。本包不保存可恢复的授权状态，挂载 Remote owner 本身不会发起 flow。
+
 ### 可能出错的地方
 
 - **没有 flow 的凭据是惰性的**——对没有任何 flow 认领的键调用 `begin()` 会抛出 `NO_FLOW`；被卸载插件遗留的记录可以删除，但无法重新授权。

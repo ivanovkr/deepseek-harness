@@ -74,6 +74,7 @@
     "@deepseek-ai/dsh-mcp-resources": "workspace:*",
     "@deepseek-ai/dsh-otel": "workspace:*",
     "@deepseek-ai/dsh-permission-presets": "workspace:*",
+    "@deepseek-ai/dsh-openspec": "workspace:*",
     "@deepseek-ai/dsh-plan-mode": "workspace:*",
     "@deepseek-ai/dsh-plugin-manager": "workspace:*",
     "@deepseek-ai/dsh-plugin-package-inventory-deepseek": "workspace:*",

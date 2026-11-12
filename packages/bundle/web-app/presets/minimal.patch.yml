@@ -12,12 +12,12 @@
             name: '@deepseek-ai/dsh-persona'
             config:
               prefix: You are a helpful software engineer assistant.
-              complete: true
+              complete: false
               includeRuntimeContext: false
           - id: tool-fs
             name: '@deepseek-ai/dsh-tool-fs'
             config:
-              read: false
+              read: true
               readImage: true
               write: false
               edit: false

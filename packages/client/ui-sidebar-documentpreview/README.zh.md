@@ -9,13 +9,14 @@ kind: "package-reference"
 
 ## 概述
 
-在右侧 Sidebar 预览文件，并切换已注册的渲染器。Markdown 和代码支持分页文本；PDF、HTML、常见图片和表格接收完整字节；未知扩展名使用纯文本。Word 与 PowerPoint 文档在本地转换为 PDF；表格在浏览器内打开。tab 提供文件状态、渲染器选择、换行以及自动或手动重新载入。插件可在头部和不支持预览的空态中添加本地打开控件。
+在右侧 Sidebar 预览文件、使用 Monaco 编辑源文本，并切换已注册的渲染器。Markdown 和代码支持分页文本；PDF、HTML、常见图片和表格接收完整字节；未知扩展名使用纯文本。Word 与 PowerPoint 文档在本地转换为 PDF；表格在浏览器内打开。tab 提供文件状态、渲染器选择、换行以及自动或手动重新载入。插件可在头部和不支持预览的空态中添加本地打开控件。
 
 ## 目录
 
 - [注册了什么](#what-it-registers)
 - [地址](#addresses)
 - [怎么读](#how-it-reads)
+- [源文本编辑器](#source-editor)
 - [Excel 预览](#excel-preview)
 - [Office 预览](#office-preview)
 - [导航](#navigation)
@@ -68,6 +69,15 @@ PNG、JPEG、GIF、WebP、BMP、ICO 和 SVG 通过 Blob URL 在 `<img>` 静态�
 首次读取及渲染器准备（包括 Office 转换）共用居中的 28px ongoing `StateDot`，下方显示本地化状态文字“文档渲染中...”。状态向辅助技术提供相同的名称，并遵循减少动态效果偏好。追加文本页时使用紧凑的行内转圈，同时保留已显示的内容。PDF 正文仅在 PDF 预览挂载时加载包内 `client.pdf.js` chunk；PDF.js、Worker 源码和内嵌支持数据不会进入启动 `client.js`。PDF 与转换后的 Word/PowerPoint 页面组成纵向序列，页间距与四周留白均为 12px，露出当前主题的文档背景色；适应宽度会预留此留白，页面在接近视口时惰性渲染；未渲染的页以安静的 3:4 占位块保持位置。PDF.js 官方 TextLayerBuilder 在与画面重合的文字层上管理选区边界和复制文本规范化。文字层在脱离文档的节点中排版，完成后才挂载，避免文字测量引发整个文档的样式重算；每页文字在其文字层完成后才可选中。两种主题均使用半透明蓝色选区，画布保留文档文字，空白换行不高亮；对齐同时考虑 PDF 页面单位、页面旋转与视口宽度变化，页面释放时取消两层渲染。纯图片 PDF 不包含可选取的文字。代码预览使用 tertiary 色的语言名称和带提示的复制图标；换行仍由文档工具栏控制。默认显示源码行号，但复制文本不包含行号；纯文本与代码使用相同字号和行高。代码直接坐在分栏自身的背景上，而不是会话卡片的填充色；复制条与占满剩余高度的内部滚动区相邻，因此横纵滚动条都从复制控件下方开始。
 
 文档开头的 YAML frontmatter（首行 `---` 开始，以 `---` 或 `...` 结束）在 Markdown 正文上方显示为键值列表。字符串值显示解析后的文本，包括折叠与多行字符串；其他标量、列表、映射与别名保留原始 YAML 写法。无效 YAML 或非映射文档原样显示整个块，没有内容的块不显示。未闭合的块仍按 Markdown 渲染。YAML 解析器位于包内 `client.frontmatter-fields.js` 分块，仅在文档含 frontmatter 时加载；加载期间或加载失败时显示原样块。源文件不会被修改。
+
+<a id="source-editor"></a>
+## 源文本编辑器
+
+支持的源码和配置文件后缀以及 `.txt` 使用本地打包的 Monaco 编辑器打开；Markdown、HTML、SVG、CSV、PDF、图片和 Office 专用预览保留默认选择。查看器菜单仍提供只读 Code 和纯文本选项。**保存**和 Ctrl/Cmd+S 使用文件所属 Session 的[版本检查保存 API](../../api/workspace-files/README.zh.md#text-saves)；这是 Monaco，而非完整的 VS Code 安装或扩展宿主。文件必须是完整 UTF-8 文本；保留 BOM 和统一的 LF 或 CRLF 换行，拒绝 NUL 数据、无效 UTF-8、混合换行以及超限源文件。
+
+未保存的草稿保留在 Session 的内存 store 中，切换渲染器或关闭文件 tab 后，重新打开相同地址可恢复草稿。只要还有未保存的草稿，退出浏览器页面时就会警告，即使对应 tab 已关闭。确认离开页面、插件 dispose 或应用重启后不再保留草稿。**放弃草稿并重新加载**会先确认是否丢弃编辑。文件观察不会替换未保存文本；版本冲突保留草稿，并阻止再次保存，直到用户明确重新加载并协调修改。保存结果未知时同样阻止保存，要求用户复制编辑内容后重新读取文件。保存成功也会保留请求期间继续输入的编辑。
+
+编辑器及其本地 Worker 按需加载。主题和代码字号跟随应用。左侧列显示当前 Session 的可展开工作区目录树；若编辑器有未保存修改，打开文件前会先请求确认。Monaco 提供选择、撤销以及文件内查找替换；TypeScript、JavaScript、Python、CSS、YAML 和 shell 有语法规则，其他文本仍可编辑但没有语言服务。此渲染器不提供 VS Code 扩展、语言服务器、创建文件、暂存、提交或推送；Git 比较由可选的 [Forge bundle](../../experimental/forge-bundle/README.zh.md) 提供。
 
 <a id="excel-preview"></a>
 ## Excel 预览
@@ -141,7 +151,7 @@ Office Remote 通过 Connection 的 multipart 二进制传输返回原生 `Uint8
 ## 已知限制与延期工作
 
 <a id="known-limitations-and-deferred-work"></a>
-- **预览而非编辑。** 查看器不提供文件编辑或共享搜索接口；目录地址以 `not-regular-file` 失败。未知扩展名使用纯文本读取，仍受其 UTF-8/NUL 检查限制。
+- **有界文本编辑。** 只有源文本编辑器可保存已有文本文件；其他查看器仍为只读。目录地址以 `not-regular-file` 失败。未知扩展名使用纯文本读取，仍受其 UTF-8/NUL 检查限制。
 - **Office 转换限制。** 预览不启动原生 Office 编辑器，也不下载引擎。二进制 `.doc` 和 `.ppt` 文件不返回缺失字体诊断。转换保真度与资源限制由 [LibreOffice 提供方](../../document/office-kit/README.zh.md)负责。
 - **文本顺序分页，完整文件受限。** 定位到较深处的源码行需要先加载此前各页；PDF、HTML 和图片必须取得 Host `maxFileBytes` 上限内的完整结果。
 - **PDF 栅格分配有上限。** 每页位图最多为 16,777,216 像素；超大页面或高像素密度屏幕上的高比例缩放仍可能低于设备分辨率。

@@ -96,8 +96,8 @@ body {
 .brand {
   display: block;
   flex: none;
-  width: 100%;
-  height: 40px;
+  width: 229px;
+  height: 229px;
   user-select: none;
   -webkit-user-drag: none;
 }

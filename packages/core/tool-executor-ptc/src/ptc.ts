@@ -744,6 +744,12 @@ export function createRunCodeTransport(
                 runtimes.add(provider)
               }
             }
+            if (ctx.bail(scopeTarget(tools, exec.agent), 'tools/program-read-only', exec) === true) {
+              if (policy === undefined) {
+                throw new HarnessError('This program requires read-only file confinement, but the runtime does not support it.', 'PROGRAM_CONFINEMENT_REQUIRED')
+              }
+              policy = { ...policy, mode: 'read-only' }
+            }
             const spec = runtime.resolve({
               program: args.code,
               ...runtime.language === 'typescript' ? { discardCompletion: true } : {},

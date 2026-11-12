@@ -53,6 +53,7 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
       scope: 'session'
       owner: DocumentBodyOwner
       hookContext: UseSidebarRightTabInfo
+      children: { 'sidebar.files.navigator': { kind: 'factory'; scope: 'session' } }
       inject: {
         hooks: {
           tabInfo: SlotHookFactory<'sidebar.right.tab.document', UseSidebarRightTabInfo>

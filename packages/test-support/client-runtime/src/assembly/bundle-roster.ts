@@ -45,6 +45,7 @@ interface BundleLayer {
  * @param bundles - bundle package names in application order.
  * @param anchor - file whose package resolution locates the bundles; default this package.
  * @param disabledContext - optional Loader evaluation scope for trusted `disabled` expressions.
+ * @param patches - test-only overrides applied after the bundle layers.
  * @returns the roster in composition order, one row per package.
  * @throws {Error} when a bundle, its patch file, or an enabled row's package does not resolve, when the patch list
  * is not a list or does not apply as written, or when a browser row has an unevaluated `disabled` expression.
@@ -53,9 +54,10 @@ export function bundleRoster(
   bundles: readonly string[],
   anchor: string = fileURLToPath(import.meta.url),
   disabledContext?: object,
+  patches: readonly PatchOptions[] = [],
 ): ClientRoster {
   const layers = bundles.map(name => readLayer(name, anchor))
-  const entries = applyEntryPatches([], layers.flatMap(layer => layer.patches), (message: string, ...args: unknown[]) => {
+  const entries = applyEntryPatches([], [...layers.flatMap(layer => layer.patches), ...patches], (message: string, ...args: unknown[]) => {
     throw new Error(`client-test-runtime: bundle patch ${describe(message, args)}`)
   })
   const anchors = layers.map(layer => layer.manifestPath)
@@ -161,7 +163,16 @@ function describe(message: string, args: readonly unknown[]): string {
 
 const webProfileServices: Readonly<Record<string, object | undefined>> = { profileContext: { name: 'web' } }
 
+/**
+ * Compose the Web roster with explicit test-only entry overrides.
+ * @param patches - overrides applied after the shipped bundle layers.
+ * @returns the browser roster with Web profile conditions evaluated.
+ */
+export function webAppWithPatches(patches: readonly PatchOptions[]): ClientRoster {
+  return bundleRoster(WEB_PROFILE_BUNDLES, undefined, {
+    get: (name: string) => webProfileServices[name],
+  }, patches)
+}
+
 /** The `web` profile's browser roster, composed with its profile name and no business Host services. */
-export const webApp: ClientRoster = bundleRoster(WEB_PROFILE_BUNDLES, undefined, {
-  get: (name: string) => webProfileServices[name],
-})
+export const webApp: ClientRoster = webAppWithPatches([])

@@ -205,6 +205,11 @@ export class ModelsSettingsStore {
     private readonly describeFace: SettingsDescribeFace,
   ) {}
 
+  /** Fold a committed settings response into the shared mirror before reloading providers. @param view - namespace returned by the successful write. */
+  acceptSettingsView(view: SettingsNamespaceView): void {
+    this.describeFace.acceptView(view)
+  }
+
   /**
    * Refresh the whole page snapshot: the provider directory and the mirror's
    * settings answer in parallel, then one batched credential describe over

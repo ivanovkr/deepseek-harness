@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-Use this package to preview files readable through a Session's filesystem from the web client. It reads UTF-8 text by page, reads bounded byte windows or complete files, resolves related files from a base file's directory, and reports file metadata. Follow changes to a file or a directory's direct entries. Search the workspace for entries by name or relative path. File reads and watches may target paths outside the workspace; directory listing, search, and directory watches remain workspace-scoped. The service exposes no mutation operation.
+Use this package to preview files readable through a Session's filesystem from the web client. It reads UTF-8 text by page, reads bounded byte windows or complete files, resolves related files from a base file's directory, and reports file metadata. Follow changes to a file or a directory's direct entries. Search the workspace for entries by name or relative path. File reads and watches may target paths outside the workspace; directory listing, search, and directory watches remain workspace-scoped. Save existing workspace text files with version checks and the Session's sandbox policy.
 
 ## Table of Contents
 
@@ -49,6 +49,13 @@ Mount the package beside `dsh-fs`, `dsh-sandbox-policy`, the Session store, and 
 `read` pages by lines and never by bytes; a byte window is `readBytes(path, { range: { offset?, length? } })`. `options.range.offset` is the 0-based first byte and defaults to 0; `options.range.length` is the largest number of bytes in the window and defaults to `maxBytes`, which it may not exceed — a longer window fails with `too-large` instead of arriving shortened, and an offset or length that is not an integer in range is a `gateway/bad-request`. The window comes back as `Uint8Array` data, shorter than `length` at the end of the file and empty at or past it; `eof` is true when the window includes the file's last byte. Nothing is decoded and nothing is refused as binary, so an image or a NUL-laden file reads where `read` fails with `not-text`. The same `version` and `bytes` ride along as on a page.
 
 Pass the required options object as `{}` for a complete file under `maxFileBytes`, or `{ range: {} }` for the default byte window under `maxBytes`. Oversized complete files fail rather than arriving truncated. `baseFile` and `range` can be combined, and windows remain independent of the complete-file cap. The binary Remote uses Connection's multipart response with JSON metadata and raw bytes; the generated Client returns `Uint8Array<ArrayBuffer>` without base64 decoding. Caller cancellation reaches the filesystem. The endpoint returns data, not a navigable document.
+
+<a id="text-saves"></a>
+### Text saves
+
+Call `remote.workspaceFiles.writeText(sessionId, path, text, expectedVersion, signal)` with the version from the preceding read. Saves require the existing live `session` lookup, not the header-only read scope; cold Sessions must be activated by their owner first. The service resolves `sandboxPolicy.resolve({ session })`, rejects read-only policy, and passes that policy to `fs.writeText` with `replaceIfVersion`. It refuses missing files, final symlinks, non-regular files, and targets resolving outside the workspace, even under full-access policy or additional writable roots. Replacement UTF-8 bytes must fit both `maxBytes` and `maxFileBytes`; NUL text and empty versions are rejected. Success returns `WorkspaceFileStat` with the backend's committed version and encoded byte count, without rereading or normalizing the submitted text.
+
+Validation, stale-version refusal, policy denial, and pre-publication cancellation leave content unchanged. `workspace-file/stale-version` requires rereading and reconciling edits, never retrying blindly; `workspace-file/write-denied` reports policy or permission denial; `workspace-file/aborted` reports cancellation before publication. `workspace-file/write-failed` carries `outcome: 'unknown'`: an I/O failure can occur after publication, so reread before another save. The filesystem provider owns compare-and-publication serialization; callers must retain their draft on failure. Reads remain nontransactional, and this endpoint does not add protection against an external process changing the file during the provider's publication window.
 
 ### File-read and directory checks
 

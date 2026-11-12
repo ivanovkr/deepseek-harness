@@ -3,20 +3,20 @@
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/plan/README.md
 /:
-  en: 7d0618763591cc1e
-  zh: 2787cf286ad71524
+  en: 9516ec1416745075
+  zh: 3d25ee2d5914bb6a
 /plan-plan-collaboration-state:
   en: 88bfa63f89c7720d
   zh: 8017ab5c89bd13cf
 /plan-plan-collaboration-state/summary:
-  en: e7e55e6490c766ec
-  zh: 16bc34cebd0b453a
+  en: 82960b6b1e6814cf
+  zh: 1c8cad0ecbe4b2c3
 /plan-plan-collaboration-state/table-of-contents:
   en: 1eb35b015a6c423f
   zh: a8a3dceee2c9e943
 /plan-plan-collaboration-state/packages:
-  en: 851a053859e914fc
-  zh: 2430d56699265408
+  en: b2fb284b9abf0cc2
+  zh: a103aaea684713a8
 /plan-plan-collaboration-state/related-documentation:
   en: e54820a2ace8e353
   zh: fe1020bc3fb67a06

@@ -1,0 +1,46 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  white-space: normal;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--dsw-alias-border-l3);
+}
+
+.toolbar span {
+  color: var(--dsw-alias-label-secondary);
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+
+.failure {
+  margin: 0;
+  padding: 12px;
+  color: var(--dsw-alias-label-primary);
+  overflow-wrap: anywhere;
+}
+
+.editorRow {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 160px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.editor {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}

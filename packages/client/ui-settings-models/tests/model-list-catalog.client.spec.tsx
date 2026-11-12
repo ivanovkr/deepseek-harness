@@ -11,6 +11,7 @@ afterEach(cleanup)
 function operations(discoverModels: ModelsOperations['discoverModels']): ModelsOperations {
   return {
     discoverModels,
+    checkProxy: vi.fn(async () => ({ kind: 'failed' as const })),
     storeCredential: vi.fn(),
     removeCredential: vi.fn(),
     writeSettings: vi.fn(),

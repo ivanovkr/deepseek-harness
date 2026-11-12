@@ -44,10 +44,25 @@
     - id: tool-fs
       name: '@deepseek-ai/dsh-tool-fs'
       config:
-        read: false
+        read: true
         readImage: true
         write: false
         edit: false
+
+    - id: openspec
+      name: '@deepseek-ai/dsh-openspec'
+      config:
+        timeoutMs: 60000
+        maxOutputBytes: 131072
+        graceMs: 2000
+        maxArtifactBytes: 262144
+        maxArtifactFiles: 64
+
+    - id: user-questions
+      name: '@deepseek-ai/dsh-user-questions'
+
+    - id: tool-fs-search
+      name: '@deepseek-ai/dsh-tool-fs-search'
 
     - id: working-directory
       name: '@deepseek-ai/dsh-working-directory'

@@ -37,6 +37,7 @@ import { apply as registerHtml } from './html/index.ts'
 import { apply as registerImage } from './image/index.ts'
 import { apply as registerPdf } from './pdf/index.ts'
 import { apply as registerCode } from './code/index.ts'
+import { apply as registerEditor } from './editor/index.ts'
 import { apply as registerOffice } from './office/index.ts'
 import { apply as registerExcel } from './excel/index.ts'
 import { Config } from '../config.ts'
@@ -80,7 +81,7 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
  * Required browser services: the tab registry, the slot registry, copy, and the
  * workspace Remote for bytes and paged text reads.
  */
-export const inject = ['slots', 'locale', 'sidebarRightTabs', 'remote', 'remote.workspaceFiles', 'configForms', 'resources', 'fileDrag']
+export const inject = ['slots', 'locale', 'sidebarRightTabs', 'remote', 'remote.workspaceFiles', 'configForms', 'resources', 'fileDrag', 'theme']
 
 /**
  * Client plugin body: register the type, its dictionaries, its body, and its chip title.
@@ -129,4 +130,5 @@ export function apply(ctx: ClientContext): void {
   registerOffice(ctx, config.office)
   registerExcel(ctx, config.excel)
   registerCode(ctx)
+  registerEditor(ctx)
 }

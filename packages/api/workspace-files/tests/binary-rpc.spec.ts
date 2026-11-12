@@ -1,5 +1,5 @@
 /** Workspace byte reads traverse Gateway lookup and Connection's binary RPC response. */
-import { writeFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { beforeEach, afterEach, expect, it, vi } from 'vitest'
 import SessionStore from '@deepseek-ai/dsh-session'
@@ -50,6 +50,19 @@ it('returns complete binary contents through the ordinary Remote endpoint', asyn
   await writeFile(join(harness.workspace, '字节.bin'), data)
   expect(await read('字节.bin', {})).toMatchObject({ ok: true, value: { offset: 0, eof: true, bytes: 4, data } })
   expect(harness.ctx.get('agents')).toBeUndefined()
+})
+
+it('saves through the Session lookup and preserves a stale draft conflict over RPC', async () => {
+  await writeFile(join(harness.workspace, 'file.txt'), 'old')
+  const stat = await harness.ctx.workspaceFiles.stat(harness.scope, 'file.txt', new AbortController().signal)
+  const args = { sessionId: harness.scope.sessionId, path: 'file.txt', text: 'new', expectedVersion: stat.version }
+  expect(await rpc.call('/api', 'workspaceFiles/writeText', { args })).toMatchObject({ ok: true, value: { bytes: 3 } })
+  expect(await readFile(join(harness.workspace, 'file.txt'), 'utf8')).toBe('new')
+  expect(await rpc.call('/api', 'workspaceFiles/writeText', { args: { ...args, text: 'bad' } }))
+    .toMatchObject({ ok: false, error: { code: 'workspace-file/stale-version' } })
+  expect(await readFile(join(harness.workspace, 'file.txt'), 'utf8')).toBe('new')
+  expect(await rpc.call('/api', 'workspaceFiles/writeText', { args: { ...args, sessionId: 'missing' } }))
+    .toMatchObject({ ok: false, error: { code: 'gateway/lookup-not-found' } })
 })
 
 it.each([

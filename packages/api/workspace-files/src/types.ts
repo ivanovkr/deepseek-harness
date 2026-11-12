@@ -205,13 +205,21 @@ export type WorkspaceFileWatchFrame =
 
 declare module '@deepseek-ai/dsh-typert-protocol' {
   interface RemoteErrorDetailsMap {
+    /** The file changed since the supplied version; the replacement was not published. */
+    'workspace-file/stale-version': { readonly path: string }
+    /** Session sandbox policy or filesystem permissions denied the save. */
+    'workspace-file/write-denied': { readonly path: string }
+    /** Cancellation stopped the save before publication. */
+    'workspace-file/aborted': { readonly path: string }
+    /** Saving failed with an unknown publication outcome; reread before another save. */
+    'workspace-file/write-failed': { readonly path: string; readonly outcome: 'unknown' }
     /** Search cannot run: missing subprocess, launch/execution failure, or configured timeout. */
     'workspace-file/search-failed': Record<string, never>
     /** The filesystem provider cannot initialize a watch for this target. */
     'workspace-file/watch-unsupported': { readonly path: string }
     /** No entry exists at that path inside the workspace. */
     'workspace-file/not-found': { readonly path: string }
-    /** The directory listing or watch path resolves outside the Session's workspace root. */
+    /** A directory listing, directory watch, or save resolves outside the Session's workspace root. */
     'workspace-file/outside-workspace': { readonly path: string }
     /** The requested page exceeds the configured byte cap; nothing is returned. */
     'workspace-file/too-large': { readonly path: string; readonly limit: number }

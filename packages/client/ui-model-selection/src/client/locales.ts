@@ -11,6 +11,8 @@
 /** Simplified Chinese dictionary (the key-set source of truth). */
 export const zh = {
   'provider.account': 'DeepSeek 账号',
+  'provider.openai': 'OpenAI API（需要 API 密钥）',
+  'provider.openaiCodex': 'OpenAI Codex（ChatGPT 登录）',
   'command.label': '模型',
   'command.description': '选择本会话使用的模型',
   'option.loadError': '目录加载失败：{message}',
@@ -41,6 +43,8 @@ export type ModelKey = keyof typeof zh
 /** English dictionary, checked complete against the zh key set. */
 export const en = {
   'provider.account': 'DeepSeek Account',
+  'provider.openai': 'OpenAI API (API key required)',
+  'provider.openaiCodex': 'OpenAI Codex (ChatGPT sign-in)',
   'command.label': 'Model',
   'command.description': 'Select the model for this conversation',
   'option.loadError': 'Catalog failed to load: {message}',
@@ -68,6 +72,8 @@ export const en = {
 /** Japanese copy, checked against the English keys. */
 export const ja = {
   'provider.account': 'DeepSeek アカウント',
+  'provider.openai': 'OpenAI API（APIキーが必要）',
+  'provider.openaiCodex': 'OpenAI Codex（ChatGPTログイン）',
   'command.label': 'モデル',
   'command.description': 'この会話で使用するモデルを選択',
   'option.loadError': 'カタログの読み込みに失敗しました: {message}',
@@ -95,6 +101,8 @@ export const ja = {
 /** Spanish dictionary, checked against the English keys. */
 export const es = {
   'provider.account': 'Cuenta DeepSeek',
+  'provider.openai': 'API de OpenAI (requiere clave API)',
+  'provider.openaiCodex': 'OpenAI Codex (inicio de sesión de ChatGPT)',
   'command.label': 'modelo',
   'command.description': 'Selecciona el modelo para esta conversación',
   'option.loadError': 'No se pudo cargar el catálogo: {message}',
@@ -122,6 +130,8 @@ export const es = {
 /** French dictionary, checked against the English keys. */
 export const fr = {
   'provider.account': 'Compte DeepSeek',
+  'provider.openai': 'API OpenAI (clé API requise)',
+  'provider.openaiCodex': 'OpenAI Codex (connexion ChatGPT)',
   'command.label': 'Modèle',
   'command.description': 'Sélectionnez le modèle pour cette conversation',
   'option.loadError': 'Échec du chargement du catalogue : {message}',
@@ -149,6 +159,8 @@ export const fr = {
 /** German dictionary, checked against the English keys. */
 export const de = {
   'provider.account': 'DeepSeek-Konto',
+  'provider.openai': 'OpenAI-API (API-Schlüssel erforderlich)',
+  'provider.openaiCodex': 'OpenAI Codex (ChatGPT-Anmeldung)',
   'command.label': 'Modell',
   'command.description': 'Wählen Sie das Modell für dieses Gespräch aus',
   'option.loadError': 'Katalog konnte nicht geladen werden: {message}',
@@ -176,6 +188,8 @@ export const de = {
 /** Russian dictionary, checked against the English keys. */
 export const ru = {
   'provider.account': 'DeepSeek Аккаунт',
+  'provider.openai': 'OpenAI API (нужен API-ключ)',
+  'provider.openaiCodex': 'OpenAI Codex (вход через ChatGPT)',
   'command.label': 'Модель',
   'command.description': 'Выберите модель для этого разговора',
   'option.loadError': 'Не удалось загрузить каталог: {message}.',
@@ -203,6 +217,8 @@ export const ru = {
 /** Portuguese dictionary, checked against the English keys. */
 export const pt = {
   'provider.account': 'DeepSeek Conta',
+  'provider.openai': 'API da OpenAI (requer chave de API)',
+  'provider.openaiCodex': 'OpenAI Codex (login do ChatGPT)',
   'command.label': 'Modelo',
   'command.description': 'Selecione o modelo para esta conversa',
   'option.loadError': 'Falha ao carregar o catálogo: {message}',

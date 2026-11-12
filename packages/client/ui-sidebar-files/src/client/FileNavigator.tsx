@@ -1,6 +1,7 @@
 /**
  * One pane's workspace navigator: the search bar, the tree, and the edge that
- * resizes it. The `files` page draws it below its header; beside a preview the
+ * resizes it. An editor occurrence can draw only the tree as an inline column, with no search controls.
+ * The `files` page draws it below its header; beside a preview the
  * preview's own header is the only one. Everything it shows lives in the store
  * and face, keyed by pane, so a remount on a tab switch or replacement draws it
  * unchanged, keyboard focus included when the tree held it. Its layout
@@ -31,10 +32,12 @@ import css from './FilesBody.module.css'
 
 /** What a navigator occurrence is drawn for. */
 export interface FileNavigatorInput {
-  /** The tab the navigator is drawn beside, and its pane. */
+  /** Framework hook for the tab and pane owning this navigator occurrence. */
   readonly useTabInfo: UseSidebarRightTabInfo
   /** Drawn for the `files` page: always shown and filling the page. */
   readonly page: boolean
+  /** Draw only the project tree, without search controls or a pane-width navigator. */
+  readonly treeOnly?: boolean
   /** Ask the containing plugin to open a file. @param address - the file's resource address. */
   readonly onOpen: (address: string) => void
 }
@@ -44,7 +47,7 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
     /**
      * One pane's workspace tree with its width and show/hide state. The host renders it as a direct child of
      * the content row it shares with the body, and that row carries `data-files-navigator-row`, which the
-     * filled layout needs to hide the covered body.
+     * filled layout needs to hide the covered body. `treeOnly` renders a fixed inline tree without search UI.
      */
     'sidebar.files.navigator': {
       scope: 'session'
@@ -166,29 +169,31 @@ function SearchFailure({ failure, onRetry, t }: {
  * @returns the navigator, or nothing while hidden or without a workspace.
  */
 export function FileNavigator({
-  useTabInfo, page, onOpen, sessionId, useSessions, useStore, actions, useRowWidth, useCanOpen, useSearchPreferences,
+  useTabInfo, page, treeOnly = false, onOpen, sessionId, useSessions, useStore, actions, useRowWidth, useCanOpen, useSearchPreferences,
   attach, placeBeside, hold, toggle, scrolled, bodyDrawn, currentDrawn, navigatorDrawn,
   setQuery, toggleSearch, retrySearch, setSearchPreferences, searchDrawn, t, renderFactorySlot, useContextMenu,
 }: FactoryComponentPropsOf<'sidebar.files.navigator'>): ReactNode {
-  const { tab, panel } = useTabInfo()
+  const tabInfo = useTabInfo()
+  const { panel, tab } = tabInfo
   const { getTriggerProps } = useContextMenu()
   const paneId = panel.id
+  const tabId = tab.id
+  const tabSignal = tab.signal
+  const contentId = tab.contentId
   // A Session's working directory comes from its header and never changes once
   // known, so every search result the pane's store holds is rooted at it.
   const cwd = useSessions(sessions => sessions.byId[sessionId]?.cwd)
   const state = useStore(store => store.byPane[paneId])
-  const rowWidth = useRowWidth(paneId)
+  const rowWidth = treeOnly ? undefined : useRowWidth(paneId)
   const canOpen = useCanOpen(check => check)
   const open = page || state?.open === true
-  // Measured by the face; the viewport rule is CSS's, read again when a file opens.
-  const mode = navigatorMode(rowWidth)
+  // The inline editor tree is a normal flex column; preview navigation retains its measured overlay layouts.
+  const mode = treeOnly ? 'push' : navigatorMode(rowWidth)
   const tree = state?.tree?.root === cwd ? state?.tree : undefined
-  // The face resolves every key to a source, so the renderer never reports one unavailable.
-  /* v8 ignore next -- the fallback only satisfies the keyed hook's optional snapshot type. */
   const preferences: WorkspaceSearchPreferences = useSearchPreferences(cwd ?? '') ?? defaultSearchPreferences()
   const { showHidden } = preferences
   const query = state?.query ?? ''
-  const searchBarOpen = !page || state?.searchBarOpen === true
+  const searchBarOpen = !treeOnly && (!page || state?.searchBarOpen === true)
   const search = state?.search
   const pending = search?.pending === true
   const result = search?.result
@@ -201,15 +206,15 @@ export function FileNavigator({
   const trigger = useRef<HTMLButtonElement | null>(null)
   // Stable, so each element registers once per drawing rather than on every render.
   const navigatorRef = useCallback(
-    (element: HTMLElement | null) => { navigatorDrawn(paneId, element, !page) },
-    [navigatorDrawn, paneId, page],
+    (element: HTMLElement | null) => { navigatorDrawn(paneId, element, !page && !treeOnly) },
+    [navigatorDrawn, paneId, page, treeOnly],
   )
   // Also new when the container switches between the tree and the results, so
   // the face restores that view's scroll offset once its rows are drawn.
-  const resultsShown = search !== undefined
+  const resultsShown = search !== undefined && !treeOnly
   const bodyRef = useCallback(
-    (body: HTMLDivElement | null) => { bodyDrawn(paneId, tab.contentId, body) },
-    [bodyDrawn, paneId, tab.contentId, resultsShown],
+    (body: HTMLDivElement | null) => { bodyDrawn(paneId, contentId, body) },
+    [bodyDrawn, paneId, contentId, resultsShown],
   )
   const inputRef = useCallback((element: HTMLInputElement | null) => {
     input.current = element
@@ -217,12 +222,12 @@ export function FileNavigator({
   }, [searchDrawn, paneId])
   const currentRef = useCallback((row: HTMLElement | null) => { currentDrawn(paneId, row) }, [currentDrawn, paneId])
 
-  useEffect(() => attach(paneId, tab.id, tab.signal), [attach, paneId, tab.id, tab.signal])
+  useEffect(() => attach(paneId, tabId, tabSignal), [attach, paneId, tabId, tabSignal])
   // Only a navigator that can draw a tree keeps the workspace command on its tab.
-  useEffect(() => page || cwd === undefined ? undefined : placeBeside(tab.id), [page, cwd, placeBeside, tab.id])
+  useEffect(() => page || treeOnly || cwd === undefined ? undefined : placeBeside(tabId), [page, treeOnly, cwd, placeBeside, tabId])
   useEffect(() => cwd === undefined || !open ? undefined : hold(paneId, cwd), [cwd, open, paneId, hold])
 
-  const relativePath = tree === undefined ? undefined : relativeFileOf(tab.contentId, sessionId, tree.root)
+  const relativePath = tree === undefined ? undefined : relativeFileOf(contentId, sessionId, tree.root)
   const location = useMemo(
     () => tree === undefined || relativePath === undefined ? undefined : locateFile(tree, relativePath),
     [tree, relativePath],
@@ -256,6 +261,7 @@ export function FileNavigator({
       expanded: tree.expanded,
       onToggle: (entry: TreeEntry) => { toggle(paneId, parentOf(tree, entry.path), entry.path, tree.expanded) },
       onOpen: (entry: TreeEntry) => { onOpen(fileAddressFor(sessionId, tree.root, entry.path)) },
+      currentRef,
       canOpen: (entry: TreeEntry) => canOpen(fileAddressFor(sessionId, tree.root, entry.path)),
       rowTriggerProps: (entry: TreeEntry, kind: 'file' | 'directory') => getTriggerProps(kind === 'directory'
         ? { kind, value: { sessionId, path: entry.path } }
@@ -286,11 +292,12 @@ export function FileNavigator({
   return (
     <aside
       ref={navigatorRef}
-      className={clsx(css.navigator, shown === undefined ? css.wholePage : css[shown], dragging && css.dragging)}
-      style={page ? undefined : { '--files-navigator-width': `${geometry.width}px` } as CSSProperties}
+      className={clsx(css.navigator, treeOnly ? css.treeOnly : shown === undefined ? css.wholePage : css[shown], dragging && css.dragging)}
+      style={page || treeOnly ? undefined : { '--files-navigator-width': `${geometry.width}px` } as CSSProperties}
       aria-label={t('guide.title')}
       data-files-navigator={paneId}
-      data-files-navigator-mode={shown}
+      data-files-navigator-mode={treeOnly ? 'tree-only' : shown}
+      data-files-tree-only={treeOnly || undefined}
       data-files-state="tree"
       data-files-root={cwd}
       onKeyDown={(event) => {
@@ -303,7 +310,7 @@ export function FileNavigator({
         clear()
       }}
     >
-      {shown !== undefined && shown !== 'fill' && (
+      {!treeOnly && shown !== undefined && shown !== 'fill' && (
         <div
           className={css.separator}
           role="separator"
@@ -390,22 +397,22 @@ export function FileNavigator({
         </div>
       </div>}
       {/* Always mounted, so a screen reader announces each new text; empty, it takes no room. */}
-      <p className={clsx(css.searchStatus, search === undefined && css.searchStatusIdle)} aria-live="polite" data-files-search-status>
+      {!treeOnly && <p className={clsx(css.searchStatus, search === undefined && css.searchStatusIdle)} aria-live="polite" data-files-search-status>
         {found !== undefined && <span className={css.searchStatusLine}>{t('search.results', { count: String(found.count) })}</span>}
         {pending && <StateDot state="ongoing" size={12} className={css.searchSpinner} />}
-      </p>
+      </p>}
       <div
         ref={bodyRef}
-        className={css.body}
+        className={clsx(css.body, treeOnly && css.treeOnlyBody)}
         tabIndex={-1}
         data-files-body
-        data-files-view={resultsShown ? 'search' : 'tree'}
+        data-files-view={resultsShown && !treeOnly ? 'search' : 'tree'}
         aria-busy={pending}
         onScroll={(event) => { scrolled(paneId, event.currentTarget.scrollTop) }}
       >
         {view === undefined || entries === undefined || directories === undefined
           ? <p className={css.note} data-files-row="loading">{t('loading')}</p>
-          : search !== undefined
+          : search !== undefined && !treeOnly
             ? result?.kind === 'failed'
               ? <SearchFailure failure={result.failure} onRetry={() => { retrySearch(paneId) }} t={t} />
               : found !== undefined && (
@@ -420,7 +427,7 @@ export function FileNavigator({
               )
             : renderFactorySlot('sidebar.files.tree', { ...view, entries, directories, current: location?.current, currentRef })}
       </div>
-      {searchBarOpen && draft !== undefined && (
+      {!treeOnly && searchBarOpen && draft !== undefined && (
         <SearchSettings rules={draft} trigger={trigger} onChange={setDraft}
           respectGitignore={preferences.respectGitignore}
           onRespectGitignore={(respectGitignore) => { setSearchPreferences(cwd, { respectGitignore }) }}

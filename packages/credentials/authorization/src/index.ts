@@ -30,10 +30,15 @@ import { Context, Service } from '@deepseek-ai/cordis'
 import type { CredentialKey, CredentialRecord } from '@deepseek-ai/dsh-credentials'
 import { HarnessError } from '@deepseek-ai/dsh-llm'
 
+import AuthorizationRemote from './remote.ts'
+
 import type {
   AuthorizationEntry, AuthorizationMethod, AuthorizationNotice, AuthorizationOutcome, AuthorizationPrompt,
   AuthorizationSettlement,
 } from './types.ts'
+
+export { AuthorizationRemote } from './remote.ts'
+export type * from './remote-types.ts'
 
 export type {
   AuthorizationEntry, AuthorizationMethod, AuthorizationNotice, AuthorizationOutcome, AuthorizationPrompt,
@@ -195,6 +200,7 @@ export class AuthorizationService extends Service {
 
   constructor(ctx: Context) {
     super(ctx, 'authorization')
+    ctx.plugin(AuthorizationRemote)
   }
 
   /**

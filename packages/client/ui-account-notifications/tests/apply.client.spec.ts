@@ -3,14 +3,17 @@
 import { afterEach, beforeEach, expect, onTestFinished, vi } from 'vitest'
 import { ok } from '@deepseek-ai/dsh-remote-mock'
 import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
-import { createClientTest, type TestClient, webApp } from '@deepseek-ai/dsh-client-test-runtime/src/assembly/index.ts'
+import { createClientTest, type TestClient, webAppWithPatches } from '@deepseek-ai/dsh-client-test-runtime/src/assembly/index.ts'
 import type { AccountNotificationBatch, AccountNotificationId, AccountDetails, AccountView, SignInAttemptId } from '@deepseek-ai/dsh-deepseek-account/types'
 import type { AccountSectionInjected } from '@deepseek-ai/dsh-client-ui-settings-account/client'
 import type { AccountNotificationsInjected } from '../src/client/AccountNotifications.tsx'
 import { NOTIFICATIONS_CONFIG_GLOBAL } from '../src/config.ts'
 import { notification } from './notification-fixture.ts'
 
-const it = createClientTest({ roster: webApp })
+const it = createClientTest({ roster: webAppWithPatches([
+  { id: 'ui-settings-account', disabled: false },
+  { id: 'ui-account-notifications', disabled: false },
+]) })
 const SELF = '@deepseek-ai/dsh-client-ui-settings-account'
 const view: AccountView = { status: 'signed-out', attempt: null,
   links: { usageUrl: 'https://platform.deepseek.com/usage', topUpUrl: 'https://platform.deepseek.com/top_up' } }

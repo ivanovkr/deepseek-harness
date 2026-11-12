@@ -18,6 +18,8 @@ import type {
 import { Remote, RemoteError, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 import { z } from 'zod'
+import { checkProxyConnection } from './proxy-check.ts'
+import type { ProxyCheckOutcome } from './types.ts'
 import { CredentialsController } from './credentials.ts'
 import type { SettingsDocumentOpenValue } from './types.ts'
 
@@ -86,6 +88,18 @@ export class SettingsController extends TypertRemoteService {
     super(ctx, 'settingsController', { namespace: 'settings' })
     this.openTextFile = internals.openTextFile ?? openNativeTextFile
     ctx.plugin(CredentialsController)
+  }
+
+  /**
+   * Check a candidate proxy by sending an unauthenticated request to the DeepSeek Messages endpoint.
+   * @param proxyUrl - candidate HTTP(S) proxy URL; it is never returned or logged.
+   * @param verifyTls - whether to verify certificates for TLS connections through the proxy.
+   * @param signal - caller cancellation signal.
+   * @returns a safe diagnosis; HTTP 401 confirms connectivity and is expected without an API key.
+   */
+  @Remote
+  checkProxy(proxyUrl: string, verifyTls: boolean, signal: AbortSignal): Promise<ProxyCheckOutcome> {
+    return checkProxyConnection(proxyUrl, verifyTls, signal)
   }
 
   /**

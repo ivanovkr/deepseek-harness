@@ -44,7 +44,7 @@ After startup you see a `dsh web:` line whose root URL carries a fresh process t
 
 **Settings → Models** displays **DeepSeek**, using `DEEPSEEK_API_KEY`. The default is `deepseek-official` / `deepseek-flash` (DeepSeek-V4.1-Flash). The [DeepSeek plugin](../../llm/llm-deepseek/README.md#endpoint-and-wire-format) uses the Messages API.
 
-Saved model selections override the composition default. The settings card accepts a Messages-compatible API address and a credential reference.
+Saved model selections override the composition default. The settings card accepts a Messages-compatible API address and a credential reference. The ВСЦМ Harness composition disables account sign-in and account notifications; the sidebar opens Settings directly, and model onboarding uses API keys.
 
 ### Configuration
 

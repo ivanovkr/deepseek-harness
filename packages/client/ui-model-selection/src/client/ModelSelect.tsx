@@ -92,14 +92,16 @@ export function ModelSelect(
     '--dsh-model-anchor': `--dsh-model-${id.replaceAll(':', '')}`,
   }
 
-  const accountProviderName = t('provider.account')
+  const providerName = (id: string, fallback: string): string => {
+    if (id === 'deepseek-account') return t('provider.account')
+    if (id === 'openai') return t('provider.openai')
+    if (id === 'openai-codex') return t('provider.openaiCodex')
+    return fallback
+  }
   const groups = useMemo(() => orderModelProviders(state.groups).map(group => ({
     ...group,
-    provider: {
-      id: group.id,
-      name: group.id === 'deepseek-account' ? accountProviderName : group.name,
-    },
-  })), [state.groups, accountProviderName])
+    provider: { id: group.id, name: providerName(group.id, group.name) },
+  })), [state.groups, t])
   const choices = useMemo(() => groups.flatMap(group =>
     group.models.map(model => ({
       group,
@@ -397,7 +399,11 @@ export function ModelSelect(
     ? t('trigger.loading')
     : currentChoice?.model.name
       ?? t('trigger.fallback')
-  const triggerLabel = effortLabel === undefined ? modelLabel : `${modelLabel} · ${effortLabel}`
+  const routeLabel = currentChoice !== undefined
+    && (currentChoice.group.id === 'openai' || currentChoice.group.id === 'openai-codex')
+    ? currentChoice.group.provider.name
+    : undefined
+  const triggerLabel = [modelLabel, routeLabel, effortLabel].filter(Boolean).join(' · ')
   const triggerAria = waiting
     ? t('trigger.loading')
     : currentChoice === undefined
@@ -446,7 +452,7 @@ export function ModelSelect(
         type="button"
         className={css.trigger}
         style={anchorStyle}
-        aria-label={triggerAria}
+        aria-label={routeLabel === undefined ? triggerAria : `${triggerAria}, ${routeLabel}`}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? `${id}-menu` : undefined}
@@ -467,6 +473,7 @@ export function ModelSelect(
         <span className={css.triggerLabel}>
           {currentChoice === undefined ? modelLabel : renderModelLabel(currentChoice.group.provider, currentChoice.model, 'trigger', true)}
         </span>
+        {routeLabel !== undefined && <span className={css.triggerProvider}>{routeLabel}</span>}
         {effortLabel !== undefined && <span className={css.triggerEffort}>{effortLabel}</span>}
         {busy
           ? <StateDot state="ongoing" />

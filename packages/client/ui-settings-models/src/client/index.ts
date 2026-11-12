@@ -16,6 +16,9 @@ import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 // Type-only: pulls the ctx.remote merge and the forwarded-event key face
 // (settings/credentials invalidations ride the allowlist) into this program.
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
+import { ChatGptAuthorization } from './chatgpt-authorization.ts'
+import { ChatGptSignInCard, type ChatGptSignInInjected } from './ChatGptSignInCard.tsx'
+import { chatGptLocales, type ChatGptKey } from './chatgpt-locales.ts'
 import { ModelsSection } from './ModelsSection.tsx'
 import type { ModelsSectionInjected } from './ModelsSection.tsx'
 import { DeepSeekOnboardingDialog } from './DeepSeekOnboardingDialog.tsx'
@@ -39,6 +42,8 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** The Models page + product-onboarding copy. */
     'settings.models': ModelsKey
+    /** ChatGPT OAuth entry and interaction controls. */
+    'settings.models.chatgpt': ChatGptKey
   }
 }
 
@@ -66,7 +71,7 @@ export function refreshIfLoaded(controller: ModelsSettingsStore): void {
  * constrained; registration depends on each slot through `slots.inject()`.
  */
 export const inject = [
-  'slots', 'locale', 'remote', 'remote.credentials', 'remote.llm', 'remote.settings', 'remote.session',
+  'slots', 'locale', 'remote', 'remote.credentials', 'remote.llm', 'remote.settings', 'remote.session', 'remote.authorization',
   'configForms', 'settingsSchema',
 ]
 
@@ -88,6 +93,21 @@ export function apply(ctx: ClientContext): void {
   // own `inject`; the cards receive callbacks and never a context.
   const operations = createModelsOperations(ctx)
   const controller = new ModelsSettingsStore(ctx, schema, ctx.configForms.describe())
+  ctx.effect(() => ctx.locale.register('settings.models.chatgpt', chatGptLocales), 'models: ChatGPT copy')
+  const chatGpt = new ChatGptAuthorization(ctx, controller, operations, schema)
+  ctx.effect(() => () => chatGpt.dispose(), 'models: ChatGPT authorization lifetime')
+  ctx.slots.inject('settings.models.chatgpt', () => ctx.slots.register({
+    name: 'settings.models.chatgpt',
+    inject: (): ChatGptSignInInjected => ({
+      hooks: { authorization: chatGpt.store },
+      load: () => chatGpt.load(),
+      start: () => chatGpt.start(),
+      cancel: () => chatGpt.cancel(),
+      answer: (id, value) => chatGpt.answer(id, value),
+      enable: () => chatGpt.enable(),
+      t: ctx.locale.bind('settings.models.chatgpt'),
+    }),
+  }, ChatGptSignInCard))
   // Registration-time text (the nav label thunk) and the inject faces share
   // one bound translate; copy freshness rides the locale revision.
   const t = ctx.locale.bind(NS) as ModelsSectionInjected['t']
@@ -120,7 +140,11 @@ export function apply(ctx: ClientContext): void {
   // mirror refresh before this store joins that refresh. The welcome notice
   // follows its settings scope, so it needs no subscription here.
   ctx.effect(() => {
-    const refreshModels = (): void => { refreshIfLoaded(controller) }
+    const refreshModels = (): void => {
+      refreshIfLoaded(controller)
+      const authorization = chatGpt.store.getSnapshot()
+      if (authorization.availability !== 'idle' && authorization.phase === 'idle') void chatGpt.load()
+    }
     const disposers = [
       ctx.remote.$on('settings/document-updated', () => { refreshModels() }),
       ctx.remote.$on('credentials/record-updated', refreshModels),
@@ -143,6 +167,7 @@ export function apply(ctx: ClientContext): void {
     children: {
       'settings.models.provider-card': { kind: 'keyed', scope: 'root' },
       'settings.models.footer': { kind: 'list', scope: 'root' },
+      'settings.models.chatgpt': { kind: 'single', scope: 'root' },
     },
   }, ModelsSection))
   ctx.slots.inject('settings.onboarding', () => ctx.slots.register({

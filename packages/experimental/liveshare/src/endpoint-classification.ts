@@ -105,9 +105,15 @@ export const VIEWER_ENDPOINT_CLASSES = {
   'session/selectModel': 'owner-only', // owner selects a Session model
   'session/updateQueue': 'owner-only', // owner edits queued input
   'session/workspacePathApplications': 'owner-only', // owner applies a Workspace path
+  'authorization/answer': 'owner-only', // authorization answers belong to the initiating owner
+  'authorization/begin': 'owner-only', // only the owner may start a credential flow
+  'authorization/cancel': 'owner-only', // only the owner may cancel a credential flow
+  'authorization/list': 'owner-only', // authorization flows are owner capabilities
+  'authorization/status': 'owner-only', // credential availability belongs to the owner
   'credentials/describe': 'owner-only', // owner credentials; secrets never reach a reader
   'credentials/set': 'owner-only', // owner credentials; secrets never reach a reader
   'credentials/unset': 'owner-only', // owner credentials; secrets never reach a reader
+  'settings/checkProxy': 'owner-only', // checks network routing with the owner's proxy
   'settings/describe': 'owner-only', // owner settings
   'settings/mutate': 'owner-only', // owner settings
   'settings/openSettingsDocument': 'owner-only', // owner settings
@@ -141,6 +147,7 @@ export const VIEWER_ENDPOINT_CLASSES = {
   'workspaceFiles/readBytes': 'owner-only', // absolute paths reach files outside the Workspace, so no share offers it
   'workspaceFiles/search': 'owner-only', // owner Workspace file access
   'workspaceFiles/stat': 'owner-only', // absolute paths reach files outside the Workspace, so no share offers it
+  'workspaceFiles/writeText': 'owner-only', // owner Workspace file access
   'pluginManager/cancelInstall': 'owner-only', // owner plugin management
   'pluginManager/inspect': 'owner-only', // owner plugin management
   'pluginManager/installBundle': 'owner-only', // owner plugin management

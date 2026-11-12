@@ -1,5 +1,5 @@
 ---
-description: "plan 组的包映射：引导 agent（智能体）先探索和设计再执行的计划模式功能，供用户和维护者浏览该组。"
+description: "OpenSpec 规划与计划模式协作的包映射。"
 kind: "package-group"
 ---
 
@@ -9,7 +9,7 @@ kind: "package-group"
 
 ## 概述
 
-`plan/` 组提供计划模式：激活期间，agent 先探索和设计再执行，遵循部署写入的指令，并在执行前提交完成的计划供你批准。你可以用 `/plan` 命令进入和离开计划模式，批准计划，或让 agent 回去继续规划。计划模式是引导而非限制：每个工具仍然可用，沙箱模式与审批提示等限制需另行配置。该组只包含一个包 `plan-mode`。
+`plan/` 组提供 OpenSpec 规划和可选的计划模式协作。OpenSpec 会展示变更文档供用户审阅，但不会改变工具权限。计划模式另行提供部署指引和经审阅的退出流程；这两种模式都不会改变沙箱权限。
 
 ## 目录
 
@@ -22,10 +22,11 @@ kind: "package-group"
 <a id="packages"></a>
 ## 包
 
-一个包提供完整的计划模式功能；完整约定以子系统参考为准。
+两个包分别提供 OpenSpec 规划和可选的计划模式协作。
 
 | 包 | 职责 | ctx 键 |
 |---|---|---|
+| [`openspec/`](openspec/README.zh.md) | 准备并验证官方 OpenSpec 变更，记录用户审阅但不控制项目工具 | — |
 | [`plan-mode/`](plan-mode/README.zh.md) | 提供计划模式：`/plan` 进入和离开，部署写入的指令在规划期间引导 agent，`exit_plan_mode` 把完成的计划呈交你评审 | `ctx.planMode` |
 
 -----

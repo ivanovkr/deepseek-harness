@@ -79,6 +79,15 @@
     - id: user-questions
       name: '@deepseek-ai/dsh-user-questions'
 
+    - id: openspec
+      name: '@deepseek-ai/dsh-openspec'
+      config:
+        timeoutMs: 60000
+        maxOutputBytes: 131072
+        graceMs: 2000
+        maxArtifactBytes: 262144
+        maxArtifactFiles: 64
+
     - id: agent
       name: '@deepseek-ai/dsh-agent'
 

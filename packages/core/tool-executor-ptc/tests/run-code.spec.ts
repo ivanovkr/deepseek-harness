@@ -79,6 +79,33 @@ async function setup(definition: ToolDefinition, limits?: Partial<RunCodeConfig>
 }
 
 describe('registered program tool factory', () => {
+  it('applies read-only constraints after sandbox escalation and omits a writable retained owner', async () => {
+    const { ctx, runtime, execute } = await setup(privateTool())
+    await ctx.plugin(SandboxPolicy, { mode: 'workspace-write', workspaceRoot: process.cwd() })
+    await ctx.plugin(ApprovalService, { policy: 'ask' })
+    vi.spyOn(runtime, 'sandboxMode', 'get').mockReturnValue('workspace-write')
+    ctx.on('approval/request', () => Promise.resolve<ApprovalOutcome>('allowed-once'))
+    ctx.on('tools/program-read-only', () => true)
+    runtime.behavior = async request => {
+      expect(request.sandboxPolicy?.mode).toBe('read-only')
+      expect(request.stateOwner).toBeUndefined()
+      return { output: [] }
+    }
+    const result = (await execute({ sandbox_permissions: 'danger-full-access', justification: 'Request full access' })).results[0]!.result
+    expect(result.isError).toBe(false)
+  })
+
+  it('rejects constrained programs when the runtime cannot provide file confinement', async () => {
+    const { ctx, runtime, execute } = await setup(privateTool())
+    const body = vi.fn(async () => ({ output: [] }))
+    runtime.behavior = body
+    ctx.on('tools/program-read-only', () => true)
+    const result = (await execute()).results[0]!.result
+    expect(result.isError).toBe(true)
+    expect(JSON.stringify(result.content)).toContain('requires read-only file confinement')
+    expect(body).not.toHaveBeenCalled()
+  })
+
   it('uses the explicit runtime and binds only private definitions under native execution', async () => {
     const body = vi.fn(async () => 'private result')
     const definition = privateTool(body)

@@ -8,6 +8,12 @@ import userQuestionsRemote from '@deepseek-ai/dsh-user-questions/remote'
 import commandsRemote from '@deepseek-ai/dsh-commands/remote'
 import agentTeamsRemote from '@deepseek-ai/dsh-agent-team/remote'
 export type {} from '@deepseek-ai/dsh-agent-team/remote'
+import authorizationRemote from '@deepseek-ai/dsh-authorization/remote'
+export type {} from '@deepseek-ai/dsh-authorization/remote'
+export type {
+  AuthorizationEntry, AuthorizationNotice, AuthorizationPromptId, AuthorizationRemoteDiagnostic, AuthorizationRemoteEvent, AuthorizationRemotePrompt,
+  AuthorizationRemoteStatus,
+} from '@deepseek-ai/dsh-authorization/types'
 import accountRemote from '@deepseek-ai/dsh-deepseek-account/remote'
 import settingsControllerRemote from '@deepseek-ai/dsh-api-settings-controller/remote'
 import officeKitRemote from '@deepseek-ai/dsh-office-kit/remote'
@@ -159,6 +165,7 @@ export type { CredentialInfo } from '@deepseek-ai/dsh-credentials/types'
 export type {
   SettingsDescribeValue, SettingsNamespaceView, SettingsPathOpView, SettingsSecretView,
 } from '@deepseek-ai/dsh-settings/types'
+export type { ProxyCheckOutcome } from '@deepseek-ai/dsh-api-settings-controller/types'
 // Provider registry and discovery vocabulary for the llm namespace.
 export type {
   LlmConfigurableProvider, LlmDiscoveredModel,
@@ -197,7 +204,7 @@ export async function apply(ctx: Context): Promise<() => Promise<void>> {
   const disposers: Array<() => Promise<void>> = []
   try {
     for (const contribution of [
-      productAnalyticsRemote, agentPresetsRemote, commandsRemote, agentTeamsRemote, settingsControllerRemote, accountRemote,
+      productAnalyticsRemote, agentPresetsRemote, commandsRemote, agentTeamsRemote, settingsControllerRemote, accountRemote, authorizationRemote,
       goalsRemote, llmRemote, dynamicRemote, scheduleRemote,
       pluginInventoryRemote, pluginManagerRemote, mcpManagerRemote, pluginMarketRemote, pluginRegistryProbeRemote,
       toolResultsRemote,

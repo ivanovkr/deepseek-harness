@@ -1,5 +1,5 @@
-DeepSeek Harness
-DeepSeek Harness
+ВСЦМ Harness
+ВСЦМ Harness
 Sign in timed out
 Sign in again
 Add API Key

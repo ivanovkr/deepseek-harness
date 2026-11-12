@@ -1,0 +1,16 @@
+# Bilingual-pair consistency record for guide.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/upgrade-guide/v0.2.2-rc.2/account-ui-disabled/guide.md
+/:
+  en: cd0401768e7b181d
+  zh: 2926256b8ecdd0a5
+/account-sign-in-is-disabled-in-the-web-composition:
+  en: 8fc76d5c9fc7cd31
+  zh: a9ec40473347d634
+/account-sign-in-is-disabled-in-the-web-composition/change:
+  en: a3be7d880f62e0e8
+  zh: 31897fb1cdcc7d6e
+/account-sign-in-is-disabled-in-the-web-composition/migration:
+  en: 1b1cf248a6b31829
+  zh: 5b119bd03bd9a86d

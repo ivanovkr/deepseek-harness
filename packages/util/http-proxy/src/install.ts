@@ -60,6 +60,11 @@ export interface DispatcherOptions {
    * for a caller that cannot tolerate an idle h2 session's informational `UND_ERR_INFO` error.
    */
   readonly allowH2?: boolean
+  /**
+   * Whether to verify TLS certificates on proxied TLS connections. Defaults to true; disabling this
+   * accepts certificates presented by the proxy or an intercepted destination and is unsafe on untrusted networks.
+   */
+  readonly verifyTls?: boolean
 }
 
 /**
@@ -69,6 +74,13 @@ export interface DispatcherOptions {
  */
 function h2Options(options: DispatcherOptions): { readonly allowH2?: boolean } {
   return options.allowH2 === undefined ? {} : { allowH2: options.allowH2 }
+}
+
+/** Apply the opt-in certificate bypass only to proxy-routed TLS connections. */
+function proxyTlsOptions(options: DispatcherOptions): Record<string, unknown> {
+  if (options.verifyTls !== false) return {}
+  const insecure = { rejectUnauthorized: false }
+  return { requestTls: insecure, proxyTls: insecure }
 }
 
 /**
@@ -171,7 +183,7 @@ async function createPolicyDispatcher(policy: ProxyPolicy, options: DispatcherOp
       // undici declares this parameter as `Object`, discarding the pool options it actually passes.
       const passed = passedOptions as Pool.Options
       const proxy = proxyForUrl(policy, new URL(origin.toString()))
-      if (proxy !== undefined) return new ProxyAgent({ ...passed, uri: proxy, ...h2 })
+      if (proxy !== undefined) return new ProxyAgent({ ...passed, uri: proxy, ...h2, ...proxyTlsOptions(options) })
       // What undici's own default factory builds for these options, which `factory` replaces
       // wholesale. It reaches for a bare `Client` only at `connections: 1`, an option this
       // dispatcher never carries: it is constructed with undici's defaults.

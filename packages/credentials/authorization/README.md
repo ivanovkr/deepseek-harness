@@ -68,6 +68,14 @@ A flow declares the credential record it writes, a user-facing label, and the si
 
 A surface runs one attempt per credential at a time. The interaction travels with the request rather than living in a registry, so prompts reach exactly the page that asked; a headless caller supplies an interaction that declines. `begin()` reports `{ status: 'authorized' }` when the record was committed and observed during the attempt, and `{ status: 'cancelled' }` when the human declined or the caller withdrew. `cancel(key)` withdraws the running attempt from a second call, for the request/response transport that answers a Cancel button without holding the first call's signal.
 
+### Remote authorization
+
+The package also mounts `ctx.authorizationRemote`, which owns the generated `ctx.remote.authorization` namespace. `list()` returns registered flows; `status(key)` returns only `key`, `configured`, `writable`, and `inFlight`, never a credential payload. The Models settings integration can select the existing `llm-pi-ai/openai-codex` entry and run its `oauth` method without implementing the provider protocol.
+
+`begin(key, method, signal)` streams `notice`, `prompt`, `prompt-withdrawn`, and terminal `settled` events. An omitted method chooses the flow's first method. Prompt events contain an opaque `id` and a signal-free text, secret, or select question. `answer(key, id, value)` resolves exactly that question; stale ids and values outside a select question's options are refused. Prompt answers are not retained or logged. `cancel(key)` withdraws the initiating peer's attempt; disconnecting or closing its stream does the same. A second peer cannot answer or cancel that attempt, and a duplicate start cannot cancel the original. Already admitted credential commits settle before the stream completes.
+
+Failures reject with `authorization/rejected` and a machine-readable `details.code`. Flow failures may also include a safe `details.diagnostic` category such as DNS, timeout, TLS, or HTTP status class; provider messages, causes, URLs, and credential values do not cross the wire. The package stores no resumable authorization state and never starts a flow merely because the Remote owner is mounted.
+
 ### What can go wrong
 
 - **A credential with no flow is inert** — `begin()` on a key no flow claims throws `NO_FLOW`; a record left by an uninstalled plugin can be deleted but not re-authorized.

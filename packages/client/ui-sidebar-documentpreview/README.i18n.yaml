@@ -9,11 +9,11 @@
   en: 5168e03d461318f5
   zh: 7ad97d70ee331bfd
 /deepseek-ai-dsh-client-ui-sidebar-documentpreview/summary:
-  en: a74c16667d0baada
-  zh: 4fd709ff9f98b84f
+  en: 7248de898b58644c
+  zh: 89fe78af5ea34ee0
 /deepseek-ai-dsh-client-ui-sidebar-documentpreview/table-of-contents:
-  en: 0dd8c3a22e28aacf
-  zh: c27c11bf4b5cceba
+  en: c9c1cba98b6166c9
+  zh: d8cf5f7efe1e49e0
 /deepseek-ai-dsh-client-ui-sidebar-documentpreview/what-it-registers:
   en: 691249b09395eae1
   zh: e2ae49df2ebe130e
@@ -21,8 +21,11 @@
   en: 57942270e23d3a8e
   zh: 6617124e652b3f67
 /deepseek-ai-dsh-client-ui-sidebar-documentpreview/how-it-reads:
-  en: 26c4fa4d4bbaa6ac
-  zh: e889b67cb167092b
+  en: 7824a9092dc4ba3b
+  zh: d979f1f5215aded1
+/deepseek-ai-dsh-client-ui-sidebar-documentpreview/source-editor:
+  en: 2fc6a77cd79ad3de
+  zh: 4c56ea2a1c58659b
 /deepseek-ai-dsh-client-ui-sidebar-documentpreview/excel-preview:
   en: 595499992ceea693
   zh: 83c6147c46a80dca
@@ -39,8 +42,8 @@
   en: 7edb4c0bb5f13847
   zh: ae5d0bbebe4aa563
 /deepseek-ai-dsh-client-ui-sidebar-documentpreview/known-limitations-and-deferred-work:
-  en: e78c12236f5c4707
-  zh: 66070e4d94dd4494
+  en: 42d8bdd8b91c8211
+  zh: d591d9cb2cca3cd4
 /deepseek-ai-dsh-client-ui-sidebar-documentpreview/known-limitations-and-deferred-work/dev-note:
   en: e67f633dc6fe7773
   zh: e88aeb617ffb74ea

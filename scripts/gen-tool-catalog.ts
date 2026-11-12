@@ -38,6 +38,7 @@ import { AttachmentStore } from '@deepseek-ai/dsh-attachment'
 import type { ImageAttachmentLimits, ImageAttachmentRef, SaveImageAttachment, StoredImageAttachment } from '@deepseek-ai/dsh-attachment'
 import UserQuestionService from '@deepseek-ai/dsh-user-questions'
 import PlanModeController from '@deepseek-ai/dsh-plan-mode'
+import * as OpenSpec from '@deepseek-ai/dsh-openspec'
 import WebRuntime from '@deepseek-ai/dsh-web'
 import * as WebDeepSeekApi from '@deepseek-ai/dsh-web-deepseek-api'
 import * as WebFetchLocal from '@deepseek-ai/dsh-web-fetch-http'
@@ -300,6 +301,23 @@ const TOOL_PACKAGES: ToolPackage[] = [
     },
     note:
       'The PTC executor exposes only run_code to the model and declares other visible capabilities in a generated SDK in the runtime’s language. Program bindings enter the shared guarded tool pipeline in submission order; concurrency-safe bodies overlap up to maxParallelSubCalls, and nested results remain linked to the outer program. The resolved timeout and maxSubCallsPerMinute set the total call allowance; exceeding it terminates the program.',
+  },
+  {
+    pkg: '@deepseek-ai/dsh-openspec',
+    dir: 'openspec',
+    source: 'packages/plan/openspec/src/index.ts',
+    requires: ['ctx.tools', 'ctx.workingDirectory', 'ctx.fs', 'ctx.subprocess', 'ctx.sandbox', 'ctx.sandboxPolicy', 'ctx.userQuestions (review)'],
+    writes: ['tool/call', 'OpenSpec planning documents', 'tool/result'],
+    async mount(ctx) {
+      await ctx.plugin(LocalSubprocessRuntime)
+      await ctx.plugin(LocalSandboxProvider)
+      await ctx.plugin(SandboxPolicy)
+      await ctx.plugin(OpenSpec, {
+        timeoutMs: 60000, maxOutputBytes: 131072, graceMs: 2000,
+        maxArtifactBytes: 262144, maxArtifactFiles: 64,
+      })
+    },
+    note: 'OpenSpec preparation and review do not alter project tool permissions. Existing sandbox and permission policies govern its subprocesses and file writes.'
   },
   {
     pkg: '@deepseek-ai/dsh-plan-mode',

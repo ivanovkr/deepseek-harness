@@ -1,5 +1,5 @@
 ---
-description: "Package map for the plan group: the plan-mode feature that guides the agent to explore and design before executing, for users and maintainers navigating the group."
+description: "Package map for OpenSpec planning and plan-mode collaboration."
 kind: "package-group"
 ---
 
@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-The `plan/` group provides plan mode: while it is active, the agent explores and designs before executing, guided by instructions the deployment writes, and presents the finished plan for your approval before carrying it out. You can enter and leave plan mode with the `/plan` command and approve the plan or send the agent back to keep planning. Plan mode guides rather than restricts: every tool stays available, and limits such as sandbox mode and approval prompts are configured separately. The group contains one package, `plan-mode`.
+The `plan/` group provides OpenSpec planning and optional plan-mode collaboration. OpenSpec presents change documents for user review but does not change tool permissions. Plan mode separately provides deployment guidance and a reviewed exit; neither mode changes sandbox permissions.
 
 ## Table of Contents
 
@@ -22,10 +22,11 @@ The `plan/` group provides plan mode: while it is active, the agent explores and
 <a id="packages"></a>
 ## Packages
 
-One package provides the whole plan-mode feature; the subsystem reference owns the exhaustive contracts.
+Two packages provide OpenSpec planning and optional plan-mode collaboration.
 
 | Package | Role | ctx key |
 |---|---|---|
+| [`openspec/`](openspec/README.md) | Prepares and validates official OpenSpec changes and records human review without controlling project tools | — |
 | [`plan-mode/`](plan-mode/README.md) | Provides plan mode: `/plan` enters and leaves it, deployment guidance steers the agent while planning, and `exit_plan_mode` presents the finished plan for your review | `ctx.planMode` |
 
 -----

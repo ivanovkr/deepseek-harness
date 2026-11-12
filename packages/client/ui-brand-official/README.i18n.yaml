@@ -3,35 +3,35 @@
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/client/ui-brand-official/README.md
 /:
-  en: a46a90b8cedd5c45
-  zh: 9b4f0d5fd9ffa945
+  en: d76729b40d791980
+  zh: 9820f3cbc4ca09e1
 /deepseek-ai-dsh-client-ui-brand-official:
   en: 7cee1be833cea807
   zh: 9953e1b38cb23d34
 /deepseek-ai-dsh-client-ui-brand-official/summary:
-  en: 784b8216e88b0578
-  zh: 70165dea21d9a2ab
+  en: 9bb2d587832646b2
+  zh: 6ef3a54e2166b28f
 /deepseek-ai-dsh-client-ui-brand-official/table-of-contents:
   en: d152484eb41ac6b4
   zh: 09388d293f9be9cb
 /deepseek-ai-dsh-client-ui-brand-official/use-this-package:
-  en: 8144a213ca978516
-  zh: 43dfefbd708d87bf
+  en: 2dde4409d7a59785
+  zh: dde735d9cae5e7f8
 /deepseek-ai-dsh-client-ui-brand-official/use-this-package/choosing-the-profile:
-  en: 876e7a0e21eaa396
-  zh: 596fcdec565e3eae
+  en: ddbd6b8edd9db386
+  zh: 6ae53d1de86c32ee
 /deepseek-ai-dsh-client-ui-brand-official/use-this-package/home-feedback:
-  en: f79f52c71a3d1491
-  zh: bda67c8b4050316a
+  en: 2286628e34858784
+  zh: 148f954562e8b6c1
 /deepseek-ai-dsh-client-ui-brand-official/use-this-package/replacing-the-brand:
-  en: 3fd4b315b27cfa23
-  zh: 8f76a10d642a5811
+  en: 994315e1fefb7c5f
+  zh: 3cf7639474ef7d20
 /deepseek-ai-dsh-client-ui-brand-official/understand-the-implementation:
-  en: 4b59ceb74b5c9d1e
-  zh: c22bcc7d7344fe12
+  en: eafe5221117c2caf
+  zh: bad6f6c1454a315f
 /deepseek-ai-dsh-client-ui-brand-official/further-exploration:
-  en: 268cb9edf0c7d2f0
-  zh: 9b75285a61b44008
+  en: c9ae240d8e831cc0
+  zh: a7c9170bae79824f
 /deepseek-ai-dsh-client-ui-brand-official/model-experience:
   en: 618008c7641070e7
   zh: 7233febb4d92ccfb
@@ -39,8 +39,8 @@
   en: ca75c51c89c2c9b0
   zh: f57cc48a1b5cbfa9
 /deepseek-ai-dsh-client-ui-brand-official/known-limitations-and-deferred-work:
-  en: b8f0ff2ff02bc0be
-  zh: 8f52f9dee0225fad
+  en: 13aa3e7b11470695
+  zh: e6f75db8097e22d9
 /deepseek-ai-dsh-client-ui-brand-official/known-limitations-and-deferred-work/dev-note:
   en: e67f633dc6fe7773
   zh: 3bb0c20c93f16f98

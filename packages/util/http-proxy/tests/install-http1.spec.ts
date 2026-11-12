@@ -94,6 +94,29 @@ describe('HTTP/2 is opt-out, not the default', () => {
     }
   })
 
+  it('disables certificate validation only on proxy-routed TLS when explicitly requested', async () => {
+    const proxied = await createRouteDispatcher(env({ HTTPS_PROXY: 'http://127.0.0.1:9' }), { verifyTls: false })
+    try {
+      const factory = lastOf('Agent')?.options.factory as (origin: string, options: Record<string, unknown>) => unknown
+      factory('https://proxied.test', {})
+      factory('http://direct.test', {})
+      expect(lastOf('ProxyAgent')?.options.requestTls).toEqual({ rejectUnauthorized: false })
+      expect(lastOf('ProxyAgent')?.options.proxyTls).toEqual({ rejectUnauthorized: false })
+      expect(lastOf('Pool')?.options).not.toHaveProperty('requestTls')
+    } finally {
+      await proxied.close()
+    }
+
+    const verified = await createRouteDispatcher(env({ HTTPS_PROXY: 'http://127.0.0.1:9' }))
+    try {
+      const factory = lastOf('Agent')?.options.factory as (origin: string, options: Record<string, unknown>) => unknown
+      factory('https://proxied.test', {})
+      expect(lastOf('ProxyAgent')?.options).not.toHaveProperty('requestTls')
+    } finally {
+      await verified.close()
+    }
+  })
+
   it('keeps HTTP/2 enabled when the caller opts in', async () => {
     const proxied = await createRouteDispatcher(env({ HTTPS_PROXY: 'http://127.0.0.1:9' }), { allowH2: true })
     try {

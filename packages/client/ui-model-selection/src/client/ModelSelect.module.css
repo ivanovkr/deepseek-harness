@@ -53,6 +53,17 @@
   white-space: nowrap;
 }
 
+/* Provider route remains visible beside OpenAI models so API billing and
+   ChatGPT Codex routing cannot be confused. */
+.triggerProvider {
+  flex-shrink: 100;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--dsw-alias-label-caption);
+}
+
 /* Effort value beside the model name (mock's 'High': same 13/20/400, caption
    tone). Adaptive priority: the huge shrink factor makes the effort absorb
    all deficit first — it ellipsizes away to nothing before the model name

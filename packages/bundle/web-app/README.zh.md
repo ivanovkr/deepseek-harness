@@ -44,7 +44,7 @@ dsh --profile web --no-open --port 8080
 
 **设置 → 模型**显示 **DeepSeek**，使用 `DEEPSEEK_API_KEY`。默认模型为 `deepseek-official` / `deepseek-flash`（DeepSeek-V4.1-Flash）。[DeepSeek 插件](../../llm/llm-deepseek/README.zh.md#endpoint-and-wire-format)使用 Messages API。
 
-已保存的模型选择覆盖组合默认值。设置卡接受兼容 Messages 的 API 地址与凭据引用。
+已保存的模型选择覆盖组合默认值。设置卡接受兼容 Messages 的 API 地址与凭据引用。ВСЦМ Harness 组合禁用账号登录与账号通知；侧边栏直接打开设置，模型引导使用 API 密钥。
 
 ### 配置
 

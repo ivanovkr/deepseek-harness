@@ -52,6 +52,14 @@
   border-left: 0;
 }
 
+/* The Monaco editor's tree occupies a bounded column in its own content row. */
+.treeOnly {
+  flex: 0 0 240px;
+  width: 240px;
+  border-right: 0.5px solid var(--dsw-alias-border-l3);
+  border-left: 0;
+}
+
 /* The resize edge straddles the navigator's left rule. */
 .separator {
   position: absolute;
@@ -129,6 +137,18 @@
     margin: 8px;
   }
 
+  .treeOnly {
+    flex: 0 1 200px;
+    width: 200px;
+    min-width: 0;
+    max-width: 240px;
+    align-self: stretch;
+    height: auto;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
   /* Below it: floating over the body's right part. */
   .overlay {
     position: absolute;
@@ -192,6 +212,13 @@
    offset. WebKit-only: the Firefox path has no track to inset. */
 .body::-webkit-scrollbar-track {
   margin: 2px;
+}
+
+/* A compact editor column draws the tree as its only scrollable content. */
+.treeOnlyBody {
+  flex: 1 1 auto;
+  margin-right: 0;
+  padding: 8px 0;
 }
 
 /* The navigator's line before its tree starts, in the tree's note style (ui-primitives `.note`). */

@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-使用本包可从 Web Client 预览 Session 文件系统允许读取的文件。它按页读取 UTF-8 文本、按有界窗口或完整文件读取原始字节、从基文件目录解析关联文件，并报告文件元数据。可以跟随一个文件或一个目录直接子项的变化。可以按名称或相对路径搜索工作区条目。文件读取和监听可以指向工作区外路径；目录列举、搜索和目录监听仍限定于工作区。本服务不提供修改操作。
+使用本包可从 Web Client 预览 Session 文件系统允许读取的文件。它按页读取 UTF-8 文本、按有界窗口或完整文件读取原始字节、从基文件目录解析关联文件，并报告文件元数据。可以跟随一个文件或一个目录直接子项的变化。可以按名称或相对路径搜索工作区条目。文件读取和监听可以指向工作区外路径；目录列举、搜索和目录监听仍限定于工作区。可在 Session 沙箱策略约束下，通过版本检查保存已有的工作区文本文件。
 
 ## 目录
 
@@ -49,6 +49,13 @@ kind: "package-reference"
 `read` 按行分页，绝不按字节；字节窗口走 `readBytes(path, { range: { offset?, length? } })`。`options.range.offset` 是 0 起算的首字节，缺省为 0；`options.range.length` 是窗口最多的字节数，缺省为 `maxBytes` 且不得超过它——更长的窗口以 `too-large` 失败而不是被截短，不是整数或越界的 offset / length 则是 `gateway/bad-request`。窗口以 `Uint8Array` 类型的 `data` 返回，到文件末尾时短于 `length`，位于或越过末尾时为空；窗口含文件最后一个字节时 `eof` 为 true。不做任何解码，也不按二进制拒绝，因此图片或含 NUL 的文件在 `read` 以 `not-text` 失败之处仍可读出。与页一样附带同一 `version` 与 `bytes`。
 
 必填的选项对象传 `{}` 时，在 `maxFileBytes` 上限内读取完整文件；传 `{ range: {} }` 时，在 `maxBytes` 上限内读取默认字节窗口。超大完整文件失败，不截断。`baseFile` 与 `range` 可以组合，窗口始终不受完整文件上限约束。二进制 Remote 使用 Connection 的 multipart 响应传递 JSON 元数据与原始字节；生成的 Client 直接返回 `Uint8Array<ArrayBuffer>`，无需 base64 解码。调用方取消会传到文件系统。端点返回数据，不提供可导航的文档。
+
+<a id="text-saves"></a>
+### 文本保存
+
+调用 `remote.workspaceFiles.writeText(sessionId, path, text, expectedVersion, signal)`，传入前次读取返回的版本。保存要求已有的 live `session` lookup，而非只含 header 的读取作用域；cold Session 必须先由其所有者激活。服务解析 `sandboxPolicy.resolve({ session })`，拒绝只读策略，并将该策略与 `replaceIfVersion` 一并传给 `fs.writeText`。它拒绝不存在的文件、末端符号链接、非普通文件，以及解析到工作区外的目标，即使策略为完全访问或配置了额外可写目录也不例外。替换文本的 UTF-8 字节数必须同时满足 `maxBytes` 与 `maxFileBytes`；拒绝含 NUL 的文本与空版本。成功返回 `WorkspaceFileStat`，携带后端已提交版本与编码字节数，不重新读取或归一化提交文本。
+
+验证失败、版本过期、策略拒绝和发布前取消均保持内容不变。`workspace-file/stale-version` 要求重新读取并协调编辑，绝不盲目重试；`workspace-file/write-denied` 表示策略或权限拒绝；`workspace-file/aborted` 表示发布前取消。`workspace-file/write-failed` 携带 `outcome: 'unknown'`：I/O 失败可能发生在发布之后，因此再次保存前必须重新读取。文件系统提供方负责比较与发布的串行化；调用方必须在失败时保留草稿。读取仍不具备事务性，此端点不额外防护外部进程在提供方发布窗口内修改文件。
 
 ### 文件读取与目录检查
 

@@ -31,6 +31,15 @@ export interface PtcDispatchLog {
 declare module '@deepseek-ai/cordis' {
   interface Events {
     /**
+     * Require read-only file confinement for a program, independently of its nested tools.
+     * Returning true tightens the final policy after escalation; missing confinement
+     * support fails execution. Listeners may only require the constraint, not lift it.
+     * Scope-filtered dispatch is keyed by the calling agent.
+     * @param execution - program tool invocation whose direct file effects are constrained.
+     * @mode bail
+     */
+    'tools/program-read-only'(this: Scoped<ToolsService>, execution: Readonly<ToolExecution>): true | undefined
+    /**
      * Allow a listener to replace content in the DURABLE LOG COPY of one
      * `run_code` sub-dispatch outcome before the bridge appends its
      * `tool/ptc-dispatch` event. `next()` keeps the

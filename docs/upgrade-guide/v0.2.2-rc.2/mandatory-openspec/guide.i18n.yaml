@@ -1,0 +1,16 @@
+# Bilingual-pair consistency record for guide.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/upgrade-guide/v0.2.2-rc.2/mandatory-openspec/guide.md
+/:
+  en: 36fe6c8745cc891f
+  zh: e652d43e19fc5f36
+/openspec-review-no-longer-gates-project-tools:
+  en: c8b4743c5fc1938a
+  zh: 0e5a3f7f433d2c2f
+/openspec-review-no-longer-gates-project-tools/change:
+  en: b10bd6eab83c60f2
+  zh: ccffe2922e21c7dc
+/openspec-review-no-longer-gates-project-tools/migration:
+  en: 707defc5cc7b106d
+  zh: 0acc32636b04c6ad

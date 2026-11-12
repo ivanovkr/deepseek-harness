@@ -149,6 +149,7 @@ function harness(placement: Placement, controller: AbortController, book: Worksp
       id: placement.tabId, kind: 'files', contentId: placement.contentId, title: zh['type.label'], visible: true,
       navigation: { address: placement.contentId, params: undefined, revision: 1 },
       signal: placement.signal,
+      contentId: placement.contentId,
       actions: tabActions, refreshShortcut: placement.refreshShortcut,
     },
   })
@@ -272,9 +273,9 @@ type NavigatorProps = FactoryComponentPropsOf<'sidebar.files.navigator'>
  * @returns props shared by the navigator and its toggle.
  */
 function factoryProps(
-  shared: Omit<NavigatorProps, keyof typeof unusedFactoryProps | 'page'>,
+  shared: Omit<NavigatorProps, keyof typeof unusedFactoryProps | 'page' | 'treeOnly'>,
 ) {
-  return { ...unusedFactoryProps, ...shared } satisfies Omit<NavigatorProps, 'page'>
+  return { ...unusedFactoryProps, ...shared } satisfies Omit<NavigatorProps, 'page' | 'treeOnly'>
 }
 
 /**
@@ -323,7 +324,7 @@ function mount(
 export function mountBody(cwd: string | null = ROOT, placement: Partial<Placement> = {}): Mounted {
   return mount({ contentId: 'sidebar://files', ...placement, cwd }, (shared) => {
     // The Factory occurrence receives the same store and face as the page.
-    const renderFactorySlot = (name: string, input: Pick<NavigatorProps, 'useTabInfo' | 'page' | 'onOpen'>): ReactNode => name === 'sidebar.files.navigator'
+    const renderFactorySlot = (name: string, input: Pick<NavigatorProps, 'useTabInfo' | 'page' | 'treeOnly' | 'onOpen'>): ReactNode => name === 'sidebar.files.navigator'
       ? <FileNavigator {...factoryProps(shared)} {...input} />
       : null
     return <FilesBody {...bodyProps({ ...shared, renderFactorySlot })} />
@@ -343,13 +344,14 @@ export function mountNavigator(
   placement: Partial<Placement> = {},
   cwd: string | null = ROOT,
   book?: WorkspaceSearchPreferenceBook,
+  treeOnly = false,
 ): Mounted {
   return mount({ contentId, ...placement, cwd }, shared => (
     <>
       <NavigatorToggle {...factoryProps(shared)} />
       {/* The slot renderer wraps an occurrence without a box of its own. */}
       <div style={{ display: 'contents' }}>
-        <FileNavigator {...factoryProps(shared)} page={false} />
+        <FileNavigator {...factoryProps(shared)} page={false} treeOnly={treeOnly} />
       </div>
     </>
   ), true, book)

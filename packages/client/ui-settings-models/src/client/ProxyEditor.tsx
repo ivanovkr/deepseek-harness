@@ -38,11 +38,34 @@ export function ProxyEditor({ namespace, operations, t, mode, onSaved, onCancel,
   const [value, setValue] = useState('')
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
+  const [checkOutcome, setCheckOutcome] = useState<Awaited<ReturnType<ModelsOperations['checkProxy']>> | undefined>()
+  const [checking, setChecking] = useState(false)
+  const savedVerification = namespace.value !== null && typeof namespace.value === 'object'
+    && !Array.isArray(namespace.value) && typeof namespace.value.proxyVerifyTls === 'boolean'
+    ? namespace.value.proxyVerifyTls
+    : true
+  const [verifyTls, setVerifyTls] = useState(savedVerification)
   const saving = useRef(false)
   const id = useId()
   const stored = hasSavedProxy(namespace)
   const proxy = value.trim()
   const invalid = proxy !== '' && !validProxyUrl(proxy)
+  const check = async (): Promise<Awaited<ReturnType<ModelsOperations['checkProxy']>> | undefined> => {
+    if (proxy === '' || invalid || checking) return undefined
+    setChecking(true)
+    setCheckOutcome(undefined)
+    try {
+      const outcome = await operations.checkProxy(proxy, verifyTls)
+      setCheckOutcome(outcome)
+      return outcome
+    } catch (_error) {
+      const outcome = { kind: 'failed' as const }
+      setCheckOutcome(outcome)
+      return outcome
+    } finally {
+      setChecking(false)
+    }
+  }
   const save = async (action: 'apply' | 'skip' | 'reset'): Promise<void> => {
     if (saving.current || (action === 'apply' && invalid)) return
     saving.current = true
@@ -51,8 +74,13 @@ export function ProxyEditor({ namespace, operations, t, mode, onSaved, onCancel,
     const ops: SettingsPathOpView[] = []
     if (action === 'reset') ops.push({ op: 'unset', path: ['proxyUrl'] })
     else if (action === 'apply' && proxy !== '') ops.push({ op: 'set', path: ['proxyUrl'], value: proxy })
+    if (action === 'apply') ops.push({ op: 'set', path: ['proxyVerifyTls'], value: verifyTls })
     ops.push({ op: 'set', path: ['proxySetupComplete'], value: true })
     try {
+      if (action === 'apply' && proxy !== '') {
+        const outcome = await check()
+        if (outcome?.kind !== 'connected') return
+      }
       const result = await operations.writeSettings(namespace.ns, ops, namespace.revision)
       if (result.kind === 'written') onSaved()
       else {
@@ -70,16 +98,32 @@ export function ProxyEditor({ namespace, operations, t, mode, onSaved, onCancel,
   return <>
     <div className={styles['field']}>
       <label className={styles['fieldLabel']} htmlFor={id}>{t('proxyLabel')}</label>
-      <ApiKeyInput id={id} value={value} onChange={(event) => { setValue(event.target.value) }}
-        t={t} disabled={busy} placeholder={stored ? t('proxyKeepSaved') : 'http://127.0.0.1:7890'}
+      <ApiKeyInput id={id} value={value} onChange={(event) => { setValue(event.target.value); setCheckOutcome(undefined) }}
+        t={t} disabled={busy || checking} placeholder={stored ? t('proxyKeepSaved') : ''}
         aria-describedby={`${id}-hint`} aria-invalid={invalid} spellCheck={false} />
       <p id={`${id}-hint`} className={styles['intro']}>{t('proxyHint')}</p>
+      {(stored || proxy !== '') && <>
+        <label className={styles['fieldLabel']}>
+          <input type="checkbox" checked={verifyTls} disabled={busy || checking}
+            onChange={event => { setVerifyTls(event.target.checked); setCheckOutcome(undefined) }} />
+          {t('proxyVerifyTls')}
+        </label>
+        {!verifyTls && <p role="note" className={styles['advancedHint']}>{t('proxyTlsWarning')}</p>}
+      </>}
       {invalid && <p role="alert" className={styles['error']}>{t('proxyInvalid')}</p>}
       {failed && <p role="alert" className={styles['error']}>{t('proxySaveFailed')}</p>}
+      {checkOutcome !== undefined && <p role={checkOutcome.kind === 'connected' ? 'status' : 'alert'}
+        className={checkOutcome.kind === 'connected' ? styles['savedNotice'] : styles['error']}>
+        {checkOutcome.kind === 'connected'
+          ? t('proxyCheckConnected').replace('{status}', String(checkOutcome.status))
+          : t(({ 'proxy-auth': 'proxyCheckAuth', dns: 'proxyCheckDns', refused: 'proxyCheckRefused', timeout: 'proxyCheckTimeout', tls: 'proxyCheckTls', failed: 'proxyCheckFailed' } as const)[checkOutcome.kind])}
+      </p>}
+      <button type="button" className={styles['secondaryButton']} disabled={busy || checking || proxy === '' || invalid}
+        onClick={() => { void check() }}>{checking ? t('proxyChecking') : t('proxyCheck')}</button>
       {mode === 'settings' && stored && <button type="button" className={styles['secondaryButton']}
-        disabled={busy} onClick={() => { void save('reset') }}>{t('proxyReset')}</button>}
+        disabled={busy || checking} onClick={() => { void save('reset') }}>{t('proxyReset')}</button>}
     </div>
-    <EditorFooter t={t} busy={busy} submitDisabled={busy || invalid}
+    <EditorFooter t={t} busy={busy || checking} submitDisabled={busy || checking || invalid}
       submitLabelKey={mode === 'setup' ? 'proxyContinue' : 'apply'} submitBusyLabelKey="applying"
       cancelLabelKey={mode === 'setup' ? 'onboardingLater' : 'cancel'}
       onCancel={() => { if (mode === 'setup') void save('skip'); else onCancel() }}

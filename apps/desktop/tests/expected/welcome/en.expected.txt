@@ -1,6 +1,6 @@
-DeepSeek Harness
-DeepSeek Harness
-Welcome to DeepSeek Harness
+ВСЦМ Harness
+ВСЦМ Harness
+Welcome to ВСЦМ Harness
 Build potential. Explore intelligence.
 Sign in
 Add API Key

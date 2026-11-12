@@ -1,0 +1,43 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/plan/openspec/README.md
+/:
+  en: 6cc90511dc0b7f3f
+  zh: 918788fb3ccf38ad
+/deepseek-ai-dsh-openspec:
+  en: 9f1450eee811182d
+  zh: 57b3fb0d7b8d9ef3
+/deepseek-ai-dsh-openspec/summary:
+  en: b24b1d9b9e1d8ceb
+  zh: 204295f90b22ef9e
+/deepseek-ai-dsh-openspec/table-of-contents:
+  en: 122f0d41696980b1
+  zh: 9c2a6bb8dde05e2c
+/deepseek-ai-dsh-openspec/use-this-package:
+  en: d93e2b6d869611c1
+  zh: b5e7f0ac0e759062
+/deepseek-ai-dsh-openspec/understand-the-implementation:
+  en: 4da3e5647fe532bb
+  zh: 5470ca1beefd6fc3
+/deepseek-ai-dsh-openspec/model-experience:
+  en: 215e7ba838619b7b
+  zh: a311da3843709f90
+/deepseek-ai-dsh-openspec/model-experience/openspec-tool:
+  en: 13178b9c05a091da
+  zh: 7818e6a2f80b1071
+/deepseek-ai-dsh-openspec/model-experience/openspec-tool/what-the-model-sees:
+  en: 49ecb82bf84eabc3
+  zh: 59545b9af1282247
+/deepseek-ai-dsh-openspec/model-experience/openspec-tool/token-effect:
+  en: f2aaa33e78446b9f
+  zh: 9af8637e12d3d1ce
+/deepseek-ai-dsh-openspec/model-experience/openspec-tool/kv-cache-effect:
+  en: d39b76b663f32d7b
+  zh: 8fe61c18c39e36a7
+/deepseek-ai-dsh-openspec/known-limitations-and-deferred-work:
+  en: fb35c8f866e6c6b9
+  zh: ec9a247542ca51b4
+/deepseek-ai-dsh-openspec/known-limitations-and-deferred-work/dev-note:
+  en: 0a1253c6f7b5e8b9
+  zh: 9f56528562c7c914

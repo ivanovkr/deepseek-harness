@@ -29,6 +29,8 @@ Mount this package as a Loader entry in a profile that serves browser configurat
 
 `settings.describe()` returns deployment facts and every namespace under `redactSecrets: true`. `settings.update`, `settings.replace`, and `settings.mutate` expose the settings service's three write operations and return the namespace's new redacted view; stale writes use `settings-conflict` and other provider refusals use `settings-rejected`.
 
+`settings.checkProxy(proxyUrl)` performs a bounded, unauthenticated Messages API request through a private dispatcher for that candidate proxy, matching the built-in DeepSeek chat route. It returns only a safe diagnostic category and HTTP status; it never logs or returns the URL or raw transport error. An HTTP 401 is a successful connectivity result because the probe sends no API key. The operation does not change the process-wide dispatcher.
+
 `settings.openSettingsDocument()` prepares the provider-owned document and opens it with the native text editor; it accepts no browser-supplied filesystem target.
 
 -----

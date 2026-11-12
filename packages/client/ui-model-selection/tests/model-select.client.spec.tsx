@@ -206,6 +206,23 @@ describe('ModelSelect catalog badges', () => {
   })
 })
 
+describe('ModelSelect provider routing', () => {
+  it.each([
+    ['openai', en['provider.openai']],
+    ['openai-codex', en['provider.openaiCodex']],
+  ])('shows the selected %s route in the composer trigger', (provider, label) => {
+    const groups = [provider].map(id => ({
+      id, name: id, models: [{ id: 'same-model', name: 'Same model' }],
+    }))
+    render(<ModelSelect renderSlot={renderLabel} locked={false} available
+      directory={createSnapshotStore(state({ current: { provider, model: 'same-model' }, groups }))}
+      load={vi.fn()} resolveText={resolveText} select={vi.fn()} t={key => (en as Record<string, string>)[key] ?? key} />)
+    const trigger = screen.getByRole('button')
+    expect(trigger.textContent).toContain(label)
+    expect(trigger.title).toContain(label)
+  })
+})
+
 describe('ModelSelect reasoning effort', () => {
   it('renders effort names without descriptions and submits the effort as part of the session selection', async () => {
     const directory = createSnapshotStore<ModelDirectoryState>(state())

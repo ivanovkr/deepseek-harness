@@ -11,20 +11,22 @@ afterEach(cleanup)
 
 function setup(stored = false, writable = true) {
   const namespace: SettingsNamespaceView = {
-    ns: 'ui-settings-models', schema: {}, value: { proxySetupComplete: true },
+    ns: 'ui-settings-models', schema: {}, value: { proxySetupComplete: true, proxyVerifyTls: true },
     autoGenerate: false, applies: 'live', revision: 12,
     secrets: [{ path: ['proxyUrl'], set: stored }],
   }
   const writeSettings = vi.fn<ModelsOperations['writeSettings']>(async () => ({ kind: 'written', view: namespace }))
+  const checkProxy = vi.fn<ModelsOperations['checkProxy']>(async () => ({ kind: 'connected', status: 401 }))
   const operations: ModelsOperations = {
     writeSettings,
+    checkProxy,
     storeCredential: async () => undefined,
     removeCredential: async () => undefined,
     discoverModels: async () => ({ kind: 'found', models: [] }),
   }
   const reload = vi.fn(async () => {})
   render(<ProxySettingsCard namespace={namespace} writable={writable} operations={operations} t={key => en[key]} reload={reload} />)
-  return { writeSettings, reload }
+  return { writeSettings, checkProxy, reload }
 }
 
 it('allows configuring a proxy after initial setup is complete', async () => {
@@ -35,11 +37,24 @@ it('allows configuring a proxy after initial setup is complete', async () => {
   expect(input.getAttribute('type')).toBe('password')
   fireEvent.click(screen.getByRole('button', { name: en.apply }))
   await waitFor(() => { expect(screen.getByRole('status').textContent).toBe(en.proxySaved) })
+  expect(h.checkProxy).toHaveBeenCalledWith('http://127.0.0.1:7890', true)
   expect(h.writeSettings).toHaveBeenCalledWith('ui-settings-models', [
     { op: 'set', path: ['proxyUrl'], value: 'http://127.0.0.1:7890' },
+    { op: 'set', path: ['proxyVerifyTls'], value: true },
     { op: 'set', path: ['proxySetupComplete'], value: true },
   ], 12)
   expect(h.reload).toHaveBeenCalledOnce()
+})
+
+it('does not save a proxy when its Host connectivity check fails', async () => {
+  const h = setup()
+  h.checkProxy.mockResolvedValueOnce({ kind: 'refused' })
+  fireEvent.click(screen.getByRole('button', { name: en.proxyEdit }))
+  fireEvent.change(screen.getByLabelText(en.proxyLabel), { target: { value: 'http://127.0.0.1:7890' } })
+  fireEvent.click(screen.getByRole('button', { name: en.apply }))
+  await waitFor(() => { expect(screen.getByRole('alert').textContent).toBe(en.proxyCheckRefused) })
+  expect(h.writeSettings).not.toHaveBeenCalled()
+  expect((screen.getByLabelText(en.proxyLabel) as HTMLInputElement).value).toBe('http://127.0.0.1:7890')
 })
 
 it('removes a saved proxy through an explicit restore-environment action', async () => {
@@ -61,6 +76,23 @@ it('retains a saved proxy when its replacement field is blank', async () => {
   fireEvent.click(screen.getByRole('button', { name: en.apply }))
   await waitFor(() => { expect(h.reload).toHaveBeenCalledOnce() })
   expect(h.writeSettings).toHaveBeenCalledWith('ui-settings-models', [
+    { op: 'set', path: ['proxyVerifyTls'], value: true },
+    { op: 'set', path: ['proxySetupComplete'], value: true },
+  ], 12)
+})
+
+it('saves the opt-out choice and checks the proxy without certificate verification', async () => {
+  const h = setup()
+  fireEvent.click(screen.getByRole('button', { name: en.proxyEdit }))
+  fireEvent.change(screen.getByLabelText(en.proxyLabel), { target: { value: 'http://127.0.0.1:7890' } })
+  fireEvent.click(screen.getByRole('checkbox', { name: en.proxyVerifyTls }))
+  expect(screen.getByRole('note').textContent).toBe(en.proxyTlsWarning)
+  fireEvent.click(screen.getByRole('button', { name: en.apply }))
+  await waitFor(() => { expect(screen.getByRole('status').textContent).toBe(en.proxySaved) })
+  expect(h.checkProxy).toHaveBeenCalledWith('http://127.0.0.1:7890', false)
+  expect(h.writeSettings).toHaveBeenCalledWith('ui-settings-models', [
+    { op: 'set', path: ['proxyUrl'], value: 'http://127.0.0.1:7890' },
+    { op: 'set', path: ['proxyVerifyTls'], value: false },
     { op: 'set', path: ['proxySetupComplete'], value: true },
   ], 12)
 })

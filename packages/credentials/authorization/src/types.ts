@@ -5,6 +5,8 @@
  * @module @deepseek-ai/dsh-authorization/types
  */
 
+export type * from './remote-types.ts'
+
 import type { CredentialKey } from '@deepseek-ai/dsh-credentials/types'
 
 /** One way a flow can obtain its credential, named by the flow that offers it. */
