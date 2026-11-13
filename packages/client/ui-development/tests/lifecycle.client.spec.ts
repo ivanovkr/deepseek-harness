@@ -8,17 +8,17 @@ it('removes view, dictionaries and resource providers on plugin disposal', async
   const ctx = new Context()
   onTestFinished(() => ctx.fiber.dispose())
   const slots = new SlotRegistry(ctx)
-  slots.register({ name: 'root', children: { 'conversation.view': { kind: 'list', scope: 'session' } } }, () => null)
+  slots.register({ name: 'root', children: { 'conversation.view': { kind: 'list', scope: 'session' } }, inject: () => ({}) }, (() => null) as never)
   const dictionaries = new Set<string>()
   ctx.provide('locale', {
     register: (namespace: string) => { dictionaries.add(namespace); return () => { dictionaries.delete(namespace) } },
     bind: () => (key: string) => key,
-  } as Context['locale'])
+  } as unknown as Context['locale'])
   const resources = new ResourceRegistry(ctx)
   ctx.provide('resources', resources)
   const list = vi.fn(async () => ({ ok: true, value: { path: '', entries: [], truncated: false } }))
-  ctx.provide('remote', { workspaceFiles: { list } } as Context['remote'])
-  ctx.provide('remote.workspaceFiles', { list } as Context['remote']['workspaceFiles'])
+  ctx.provide('remote', { workspaceFiles: { list } } as unknown as Context['remote'])
+  ctx.provide('remote.workspaceFiles', { list } as unknown as Context['remote']['workspaceFiles'])
   const fiber = ctx.plugin(development, { maxChanges: 3, maxSpecFiles: 3, maxDocumentBytes: 100, maxDocumentPages: 3 })
   await fiber.await()
   expect(slots.entries('conversation.view').map(entry => entry.options.id)).toEqual(['development'])

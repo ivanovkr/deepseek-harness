@@ -15,6 +15,7 @@ import {
   WELCOME_NOTICE_ACK_FIELD, WELCOME_NOTICE_SETTINGS_NAMESPACE, WELCOME_NOTICE_VERSION,
 } from '../src/onboarding-copy.ts'
 import { ModelsSection } from '../src/client/ModelsSection.tsx'
+import { ProxySettingsSection } from '../src/client/ProxySettingsSection.tsx'
 import { DeepSeekOnboardingDialog } from '../src/client/DeepSeekOnboardingDialog.tsx'
 import { WelcomeNotice } from '../src/client/WelcomeNotice.tsx'
 import type { IndexInjection, WebServer } from '@deepseek-ai/dsh-host-webserver'
@@ -51,6 +52,7 @@ async function bench(mock = RemoteMock.create().load(remoteDefaultResponses), se
     },
     settings: mock.remote.settings,
     session: { initializeDefaultModel: vi.fn(async () => ({ ok: true, value: undefined })) },
+    authorization: {},
   })
   await ctx.plugin({ inject: [...settingsInject], apply: settingsApply }).await()
   return { ctx, slots: ctx.get('slots') as SlotRegistry, locale, remote }
@@ -64,8 +66,9 @@ function declare(slots: SlotRegistry): () => void {
         'settings.section': { kind: 'list', scope: 'root' },
         'settings.onboarding': { kind: 'list', scope: 'root' },
       },
-    } as never,
-    () => null,
+      inject: () => ({}),
+    },
+    (() => null) as never,
   )
 }
 
@@ -85,7 +88,7 @@ describe('ui-settings-models apply', () => {
       expect(slots.entries('settings.onboarding').map(entry => entry.options.id)).toEqual(['network-proxy', 'welcome-notice', 'deepseek-official'])
       const onboarding = slots.entries('settings.onboarding').find(entry => entry.options.id === 'deepseek-official')!
       expect((onboarding.inject as () => { automatic: boolean })().automatic).toBe(false)
-      expect(slots.entries('settings.section').map(entry => entry.options.id)).toEqual(['models'])
+      expect(slots.entries('settings.section').map(entry => entry.options.id)).toEqual(['models', 'proxy'])
       await plugin.dispose()
       expect(slots.entries('settings.onboarding')).toEqual([])
       await host.dispose()
@@ -113,7 +116,7 @@ describe('ui-settings-models apply', () => {
   it('declares the services it uses', () => {
     expect(inject).toEqual([
       'slots', 'locale', 'remote', 'remote.credentials', 'remote.llm', 'remote.settings', 'remote.session',
-      'configForms', 'settingsSchema',
+      'remote.authorization', 'configForms', 'settingsSchema',
     ])
   })
 
@@ -121,8 +124,12 @@ describe('ui-settings-models apply', () => {
     const before = await bench()
     declare(before.slots)
     await before.ctx.plugin({ inject: [...inject], apply }).await()
-    const entry = before.slots.entries('settings.section')[0]!
+    const entry = before.slots.entries('settings.section').find(candidate => candidate.options.id === 'models')!
     expect(entry.component).toBe(ModelsSection)
+    const proxy = before.slots.entries('settings.section').find(candidate => candidate.options.id === 'proxy')!
+    expect(proxy.component).toBe(ProxySettingsSection)
+    expect(proxy.options).toMatchObject({ id: 'proxy', order: 25 })
+    expect(resolveSlotLabel(proxy.options.label)).toBe('代理')
     expect(entry.options).toMatchObject({ id: 'models', order: 10 })
     // The section claims its two extension seats in the same registration.
     expect(before.slots.spec('settings.models.provider-card')).toMatchObject({ kind: 'keyed', scope: 'root' })
@@ -162,10 +169,11 @@ describe('ui-settings-models apply', () => {
     expect(after.slots.entries('settings.onboarding')).toHaveLength(0)
     declare(after.slots)
     await Promise.resolve()
-    expect(after.slots.entries('settings.section')[0]!.component).toBe(ModelsSection)
+    expect(after.slots.entries('settings.section').find(entry => entry.options.id === 'models')!.component).toBe(ModelsSection)
+    expect(after.slots.entries('settings.section').find(entry => entry.options.id === 'proxy')!.component).toBe(ProxySettingsSection)
     expect(after.slots.entries('settings.onboarding')).toHaveLength(3)
     // The self-inflicted ledger notifications hit the duplicate guard.
-    expect(after.slots.entries('settings.section')).toHaveLength(1)
+    expect(after.slots.entries('settings.section')).toHaveLength(2)
   })
 
   it('the label thunk follows the active locale without re-registration', async () => {
@@ -173,11 +181,12 @@ describe('ui-settings-models apply', () => {
     declare(b.slots)
     await b.ctx.plugin({ inject: [...inject], apply }).await()
     b.locale.setLocale('en')
-    expect(resolveSlotLabel(b.slots.entries('settings.section')[0]!.options.label)).toBe('Models')
-    const injected = b.slots.entries('settings.section')[0]!.inject as unknown as () => import('../src/client/ModelsSection.tsx').ModelsSectionInjected
+    const models = b.slots.entries('settings.section').find(entry => entry.options.id === 'models')!
+    expect(resolveSlotLabel(models.options.label)).toBe('Models')
+    const injected = models.inject as unknown as () => import('../src/client/ModelsSection.tsx').ModelsSectionInjected
     expect(injected().t('deleteTitle')).toBe('Delete {provider}?')
     b.locale.setLocale('zh')
-    expect(resolveSlotLabel(b.slots.entries('settings.section')[0]!.options.label)).toBe('模型')
+    expect(resolveSlotLabel(models.options.label)).toBe('模型')
     expect(injected().t('deleteTitle')).toBe('删除 {provider}？')
   })
 
@@ -193,7 +202,7 @@ describe('ui-settings-models apply', () => {
     const b = await bench()
     const redeclare = declare(b.slots)
     await b.ctx.plugin({ inject: [...inject], apply }).await()
-    expect(b.slots.entries('settings.section')).toHaveLength(1)
+    expect(b.slots.entries('settings.section')).toHaveLength(2)
     // Declarer unload: the cascade removes our entry while our local
     // disposer variable goes stale.
     redeclare()
@@ -201,11 +210,11 @@ describe('ui-settings-models apply', () => {
     expect(b.slots.entries('settings.onboarding')).toHaveLength(0)
     declare(b.slots)
     await Promise.resolve()
-    expect(b.slots.entries('settings.section')[0]!.component).toBe(ModelsSection)
+    expect(b.slots.entries('settings.section').find(entry => entry.options.id === 'models')!.component).toBe(ModelsSection)
     expect(b.slots.entries('settings.onboarding')).toHaveLength(3)
     // The locale path also recovers through the same ledger re-check.
     b.locale.setLocale('en')
-    expect(resolveSlotLabel(b.slots.entries('settings.section')[0]!.options.label)).toBe('Models')
+    expect(resolveSlotLabel(b.slots.entries('settings.section').find(entry => entry.options.id === 'models')!.options.label)).toBe('Models')
     b.locale.setLocale('zh')
   })
 
@@ -217,10 +226,10 @@ describe('ui-settings-models apply', () => {
     // A keyed card extension and a footer entry register through the ordinary
     // ledger once the section's registration declared the seats.
     const disposeCard = b.slots.register(
-      { name: 'settings.models.provider-card', key: 'llm-pi-ai' } as never,
-      () => null,
+      { name: 'settings.models.provider-card', key: 'llm-pi-ai', inject: () => ({}) } as never,
+      (() => null) as never,
     )
-    b.slots.register({ name: 'settings.models.footer', id: 'extra', order: 0 } as never, () => null)
+    b.slots.register({ name: 'settings.models.footer', id: 'extra', order: 0, inject: () => ({}) } as never, (() => null) as never)
     expect(b.slots.entries('settings.models.provider-card')).toHaveLength(1)
     expect(b.slots.entries('settings.models.footer')).toHaveLength(1)
     // Extension-side HMR safety: its own disposer removes the entry.

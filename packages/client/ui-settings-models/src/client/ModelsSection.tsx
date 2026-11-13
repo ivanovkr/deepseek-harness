@@ -28,7 +28,6 @@ import type { InjectFace, PropsRenderSlots } from '@deepseek-ai/dsh-client-ui-sl
 import type { LlmNativeAuth, SettingsNamespaceView } from '@deepseek-ai/dsh-api-remotes/client'
 // Type-only: pulls this package's SlotMap merge (the two Models child slots).
 import type {} from './slot-contract.ts'
-import { ProxySettingsCard } from './ProxySettingsCard.tsx'
 import { CustomProviderCard } from './CustomProviderCard.tsx'
 import { deriveKeyRef, protocolChoices, providerUsable, reasoningLevelChoices } from './store.ts'
 import type { ModelsSettingsStore, ProviderRow } from './store.ts'
@@ -411,14 +410,10 @@ function Loaded({ injected, renderSlot }: { injected: ModelsSectionFace; renderS
     ? undefined
     : state.rows.find(row => row.entry.provider === draft.target.provider)
 
-  const proxyNamespace = state.namespaces.get('ui-settings-models')
   return (
     <div className={styles['section']}>
       <h2 className={styles['title']}>{t('title')}</h2>
       <p className={styles['intro']}>{t('intro')}</p>
-      {proxyNamespace !== undefined && <ProxySettingsCard
-        namespace={proxyNamespace} writable={state.writable}
-        operations={operations} t={t} reload={() => controller.load()} />}
       {!state.writable && state.status === 'ready' ? <p className={styles['notice']}>{t('readOnly')}</p> : null}
       {savedIdentity === undefined
         ? null

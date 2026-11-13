@@ -20,6 +20,7 @@ import { ChatGptAuthorization } from './chatgpt-authorization.ts'
 import { ChatGptSignInCard, type ChatGptSignInInjected } from './ChatGptSignInCard.tsx'
 import { chatGptLocales, type ChatGptKey } from './chatgpt-locales.ts'
 import { ModelsSection } from './ModelsSection.tsx'
+import { ProxySettingsSection } from './ProxySettingsSection.tsx'
 import type { ModelsSectionInjected } from './ModelsSection.tsx'
 import { DeepSeekOnboardingDialog } from './DeepSeekOnboardingDialog.tsx'
 import type { DeepSeekOnboardingInjected } from './DeepSeekOnboardingDialog.tsx'
@@ -170,6 +171,13 @@ export function apply(ctx: ClientContext): void {
       'settings.models.chatgpt': { kind: 'single', scope: 'root' },
     },
   }, ModelsSection))
+  ctx.slots.inject('settings.section', () => ctx.slots.register({
+    name: 'settings.section',
+    id: 'proxy',
+    order: 25,
+    label: () => t('proxyNav'),
+    inject: injected,
+  }, ProxySettingsSection))
   ctx.slots.inject('settings.onboarding', () => ctx.slots.register({
     name: 'settings.onboarding',
     id: 'network-proxy',

@@ -149,7 +149,6 @@ function harness(placement: Placement, controller: AbortController, book: Worksp
       id: placement.tabId, kind: 'files', contentId: placement.contentId, title: zh['type.label'], visible: true,
       navigation: { address: placement.contentId, params: undefined, revision: 1 },
       signal: placement.signal,
-      contentId: placement.contentId,
       actions: tabActions, refreshShortcut: placement.refreshShortcut,
     },
   })

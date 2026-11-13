@@ -2,6 +2,10 @@
 
 /** English strings (the key-set source of truth for this pair). */
 export const en = {
+  proxyNav: 'Proxy',
+  proxyIntro: 'Configure outbound proxy routing for the application.',
+  proxyLoading: 'Loading proxy settings…',
+  proxyLoadFailed: 'Could not load proxy settings. Reconnect and try again.',
   proxySettings: 'Network proxy',
   proxyEdit: 'Configure proxy',
   proxyConfigured: 'Proxy configured',
@@ -206,6 +210,10 @@ export type ModelsKey = keyof typeof en
 
 /** Chinese strings (same keys as {@link en}). */
 export const zh: { [Key in keyof typeof en]: string } = {
+  proxyNav: '代理',
+  proxyIntro: '配置应用的出站代理路由。',
+  proxyLoading: '正在加载代理设置…',
+  proxyLoadFailed: '无法加载代理设置。请重新连接后重试。',
   proxySettings: '网络代理',
   proxyEdit: '配置代理',
   proxyConfigured: '已配置代理',
@@ -407,6 +415,10 @@ export const zh: { [Key in keyof typeof en]: string } = {
 
 /** Japanese copy, checked against the English keys. */
 export const ja = {
+  proxyNav: 'プロキシ',
+  proxyIntro: 'アプリケーションの送信プロキシを設定します。',
+  proxyLoading: 'プロキシ設定を読み込み中…',
+  proxyLoadFailed: 'プロキシ設定を読み込めませんでした。再接続してもう一度お試しください。',
   proxySettings: 'ネットワークプロキシ',
   proxyEdit: 'プロキシを設定',
   proxyConfigured: 'プロキシ設定済み',
@@ -608,6 +620,10 @@ export const ja = {
 
 /** Spanish dictionary, checked against the English keys. */
 export const es = {
+  proxyNav: 'Proxy',
+  proxyIntro: 'Configura el enrutamiento del proxy saliente de la aplicación.',
+  proxyLoading: 'Cargando la configuración del proxy…',
+  proxyLoadFailed: 'No se pudo cargar la configuración del proxy. Reconéctate e inténtalo de nuevo.',
   proxySettings: 'Proxy de red',
   proxyEdit: 'Configurar proxy',
   proxyConfigured: 'Proxy configurado',
@@ -809,6 +825,10 @@ export const es = {
 
 /** French dictionary, checked against the English keys. */
 export const fr = {
+  proxyNav: 'Proxy',
+  proxyIntro: 'Configurez le routage du proxy sortant de l’application.',
+  proxyLoading: 'Chargement des paramètres du proxy…',
+  proxyLoadFailed: 'Impossible de charger les paramètres du proxy. Reconnectez-vous et réessayez.',
   proxySettings: 'Proxy réseau',
   proxyEdit: 'Configurer le proxy',
   proxyConfigured: 'Proxy configuré',
@@ -1010,6 +1030,10 @@ export const fr = {
 
 /** German dictionary, checked against the English keys. */
 export const de = {
+  proxyNav: 'Proxy',
+  proxyIntro: 'Konfigurieren Sie das ausgehende Proxy-Routing der Anwendung.',
+  proxyLoading: 'Proxy-Einstellungen werden geladen…',
+  proxyLoadFailed: 'Proxy-Einstellungen konnten nicht geladen werden. Verbinden Sie sich erneut und versuchen Sie es noch einmal.',
   proxySettings: 'Netzwerkproxy',
   proxyEdit: 'Proxy konfigurieren',
   proxyConfigured: 'Proxy konfiguriert',
@@ -1211,6 +1235,10 @@ export const de = {
 
 /** Russian dictionary, checked against the English keys. */
 export const ru = {
+  proxyNav: 'Прокси',
+  proxyIntro: 'Настройте прокси для исходящих подключений приложения.',
+  proxyLoading: 'Загрузка настроек прокси…',
+  proxyLoadFailed: 'Не удалось загрузить настройки прокси. Переподключитесь и повторите попытку.',
   proxySettings: 'Сетевой proxy',
   proxyEdit: 'Настроить proxy',
   proxyConfigured: 'Proxy настроен',
@@ -1412,6 +1440,10 @@ export const ru = {
 
 /** Portuguese dictionary, checked against the English keys. */
 export const pt = {
+  proxyNav: 'Proxy',
+  proxyIntro: 'Configure o roteamento do proxy de saída do aplicativo.',
+  proxyLoading: 'Carregando as configurações do proxy…',
+  proxyLoadFailed: 'Não foi possível carregar as configurações do proxy. Reconecte-se e tente novamente.',
   proxySettings: 'Proxy de rede',
   proxyEdit: 'Configurar proxy',
   proxyConfigured: 'Proxy configurado',
