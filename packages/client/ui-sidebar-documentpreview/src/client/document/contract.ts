@@ -1,5 +1,5 @@
 /** Document renderer slot: the owner supplies shared file state, renderers own their presentation. */
-import type { PropsRuntime, SlotHookFactory } from '@deepseek-ai/dsh-client-ui-slots'
+import type { PropsRenderFactories, PropsRuntime, SlotHookFactory } from '@deepseek-ai/dsh-client-ui-slots'
 import type { UseSidebarRightTabInfo } from '@deepseek-ai/dsh-client-ui-sidebar-right/client'
 import type { RefCallback } from 'react'
 
@@ -96,7 +96,7 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 }
 
 /** Standard input for every document body; entry-local stores and locale props can be intersected with it. */
-export type DocumentPreviewProps = PropsRuntime<'sidebar.right.tab.document'>
+export type DocumentPreviewProps = PropsRuntime<'sidebar.right.tab.document'> & PropsRenderFactories
 
 /**
  * Forward the framework's tab reader to the selected document body.
