@@ -29,7 +29,7 @@ Desktop product events use the optional [product analytics service](../product-a
 
 Saving credentials or a custom provider preserves the selected model. The user can select an available model from the composer.
 
-ChatGPT account sign-in is separate from standard OpenAI chat. Sign-in only stores the account authorization; the **Enable Codex models** action is required before Codex appears as a provider. For standard OpenAI chat, configure the OpenAI provider with an API key and select one of its models in the composer. ChatGPT account credentials do not authorize the standard OpenAI API provider. A failed sign-in shows a safe technical category, not the provider's raw error text.
+ChatGPT account sign-in for Codex models is separate from standard OpenAI API access. Sign-in stores authorization for the `openai-codex` route; the **Enable Codex models** action is required before that route is enabled. For standard OpenAI API access, configure the `openai` provider with an API key and select one of its models in the composer. ChatGPT account credentials do not authorize the standard OpenAI API provider, and the Models sign-in does not configure the native auth of the Codex subagent. A failed sign-in shows a safe technical category, not the provider's raw error text.
 
 DeepSeek Account appears first and DeepSeek second in the provider list; third-party providers retain their directory order.
 

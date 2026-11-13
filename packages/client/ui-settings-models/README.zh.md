@@ -29,7 +29,7 @@ kind: "package-reference"
 
 保存凭据或自定义提供方时保留已选模型。用户可在 composer 中选择可用模型。
 
-ChatGPT 帐户登录与普通 OpenAI 聊天相互独立。登录只保存帐户授权；必须另外点击**启用 Codex 模型**，Codex 才会作为提供方出现。普通 OpenAI 聊天需要配置带 API 密钥的 OpenAI 提供方，并在 composer 中选择其模型。ChatGPT 帐户凭据不能用于标准 OpenAI API 提供方。登录失败时会显示安全的技术分类，而不会显示提供方的原始错误文本。
+Codex 模型的 ChatGPT 帐户登录与标准 OpenAI API 访问相互独立。登录会为 `openai-codex` 路由保存授权；必须另外点击**启用 Codex 模型**，该路由才会启用。标准 OpenAI API 访问需要为 `openai` 提供方配置 API 密钥，并在 composer 中选择其模型。ChatGPT 帐户凭据不能授权标准 OpenAI API 提供方，Models 登录也不会配置 Codex subagent 的原生身份验证。登录失败时会显示安全的技术分类，而不会显示提供方的原始错误文本。
 
 提供方列表中 DeepSeek 账号排第一，DeepSeek 排第二；第三方提供方保留目录中的相对顺序。
 

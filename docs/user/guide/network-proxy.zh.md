@@ -2,39 +2,35 @@
 
 [English](network-proxy.md) | 中文
 
-DSH 会把自身的出站请求——模型调用、web 搜索、页面抓取、走 HTTP 的 MCP 服务器——都经由标准代理环境变量所指定的代理发出。它在启动时读取这些变量，不需要其他配置。有几条路径出于设计或运行时限制保持直连，下文"哪些保持直连"一节列出了它们。
+DSH 会将模型调用、web 搜索、页面抓取和基于 HTTP 的 MCP 服务器请求，经由已保存的 profile 代理或启动时读取的标准代理环境变量发出。有几条路径出于设计或运行时限制保持直连，见“哪些保持直连”一节。
 
-## 导出环境变量
+## 让 DSH 连接代理
 
-```sh
-export HTTPS_PROXY=http://127.0.0.1:7890
-export HTTP_PROXY=http://127.0.0.1:7890
+在 Windows 上打开**设置 → Models → 网络代理 → 配置代理**，输入 HTTP(S) 代理地址并点击**继续**。DSH 会先测试能否通过代理访问 DeepSeek API，再保存设置；任何 HTTP 响应（包括 `401`）都表示代理已连通。设置保存在 profile 中，后续启动也会应用于模型提供方及其他共享出站 HTTP 客户端。在 Models 设置中选择**使用环境设置**即可移除该配置并恢复环境路由。
+
+也可以将以下变量写入 `$DSH_HOME/.env`（未设置 `DSH_HOME` 时默认为 `%USERPROFILE%\\.dsh\\.env`），从而为每个 DSH profile 配置代理：
+
+```dotenv
+HTTPS_PROXY=http://127.0.0.1:7890
+HTTP_PROXY=http://127.0.0.1:7890
 ```
 
-把这两行写进 shell 配置，这样每次调用 `dsh` 都会继承它们；也可以写进 `$DSH_HOME/.env`（默认 `~/.dsh/.env`），和 API key 放在一起；导出的环境变量始终优先于该文件。项目自己的 `.env` 不能设置它们：它随 `git clone` 一起到来，DSH 宁可拒绝启动，也不让一个仓库决定你的流量去向。
+profile 中保存的代理优先于 DSH 共享 HTTP 传输使用的环境代理。若要仅通过环境路由配置 DSH，请在启动前设置 `HTTP_PROXY` 和 `HTTPS_PROXY`；环境变量也可供其他命令行程序使用。项目自己的 `.env` 不能设置代理变量：它随 `git clone` 一起到来，DSH 宁可拒绝启动，也不让一个仓库决定你的流量去向。
 
-需要凭据的代理把凭据写在 URL 里：`http://user:password@proxy.example:8080`。DSH 绝不会回显这个 URL：诊断只点名被拒绝的变量，因此用户名和密码都不会出现在任何地方。
+需要凭据的代理把凭据写在 URL 里：`http://user:password@proxy.example:8080`。DSH 将已保存的 URL 作为机密，不会将其返回给浏览器或在诊断中打印。环境变量中的凭据会被子进程继承；如果不希望 DSH 运行的命令看到代理 URL，请使用 profile 设置。
 
-## 为什么浏览器走代理、终端却不走
+## 为什么 Windows 系统代理设置可能对 CMD 无效
 
-这是最常见的意外，而且并非 DSH 特有。**根本不存在一个所有软件都遵循的"系统代理"**——实际上有三套互不相干的机制：
+Windows 提供了多种代理机制，应用并不都会使用同一种。浏览器和一些原生应用会遵循 Windows 用户代理设置；许多命令行工具（包括 DSH）则读取 `HTTP_PROXY` 和 `HTTPS_PROXY`。因此，代理软件中的**系统代理**开关可能让浏览器可用，却让 CMD 程序仍然直连。
 
-| 机制 | 谁会遵循 |
-|---|---|
-| 操作系统的代理设置 | Safari、绝大多数 macOS 原生应用、Chrome 与 Edge |
-| `HTTP_PROXY` / `HTTPS_PROXY` 环境变量 | `curl`、`git`、`npm`、`pip` 以及 DSH |
-| TUN 模式（虚拟网卡） | 所有程序，且对应用透明 |
-
-Clash 这类代理软件里的"系统代理"开关只写第一套。浏览器会读到它，命令行工具则永远看不到。这就是为什么导出环境变量是一个独立步骤，也是为什么打开 TUN 模式后两者都能工作、且完全不需要变量。
-
-DSH 不读取操作系统的代理设置。请导出环境变量，或使用 TUN 模式。
+无需在每个 CMD 窗口里设置变量即可让 DSH 使用代理：只需在 **设置 → Models → 网络代理**中配置一次。其他命令行工具可使用代理软件的 HTTP 代理配置或 TUN 模式。DSH 目前不会自动发现 Windows 系统代理。
 
 ## 指定哪些目标保持直连
 
 `NO_PROXY` 列出需要直连的主机：
 
-```sh
-export NO_PROXY=internal.example.com,.corp.example.com,registry.local
+```cmd
+set "NO_PROXY=internal.example.com,.corp.example.com,registry.local"
 ```
 
 一个条目写的是主机名，它连同其下所有子域名一起匹配：`NO_PROXY=example.com` 也会让 `api.example.com` 直连。前缀 `.` 或 `*.` 可以写，含义相同。条目可带 `:port`，`*` 则放行全部。
@@ -51,11 +47,11 @@ export NO_PROXY=internal.example.com,.corp.example.com,registry.local
 
 **做 TLS 拦截的企业代理需要它的证书。** 如果代理已经可达但请求仍报证书错误，请在启动前把 Node 指向你所在组织的 CA 包：
 
-```sh
-export NODE_EXTRA_CA_CERTS=/path/to/corporate-ca.pem
+```cmd
+set "NODE_EXTRA_CA_CERTS=C:\certs\corporate-ca.pem"
 ```
 
-Node 只在进程启动时读取该变量，所以要在运行 `dsh` 之前导出。
+Node 只在进程启动时读取该变量，所以要在运行 `dsh` 之前设置。
 
 **DSH 替你运行的工具遵循同一个代理。** bash 工具里的命令、`git`、`gh`，以及作为子进程启动的 MCP 服务器都会继承这些变量。Node 子程序使用自己安装的运行时：Node 22.21+ 和 Node 24+ 遵循这些变量；更旧的运行时会直连。如果你的某个代理变量是 DSH 拒绝的值——比如 SOCKS URL——基于 Node 的工具同样直连而不是起不来，`curl` 与 `git` 则仍会读取那个值。
 
@@ -72,14 +68,9 @@ Node 只在进程启动时读取该变量，所以要在运行 `dsh` 之前导�
 
 ## 验证是否生效
 
-让 agent 抓取一个页面，同时观察代理软件的连接日志：
+在 Models 设置中保存代理后，发送一次模型请求并查看代理软件的连接日志。设置对话框会在保存前测试到 DeepSeek API 的代理路由。若使用环境路由，请在设置变量后新开 CMD 窗口，并确认变量已载入：
 
-```sh
+```cmd
+set | findstr /i proxy
 dsh --profile headless "fetch https://example.com and tell me the page title"
-```
-
-如果请求没有出现在那里，确认变量确实进入了 DSH 自己的环境：
-
-```sh
-env | grep -i proxy
 ```
